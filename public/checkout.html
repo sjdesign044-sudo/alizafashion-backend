@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout</title>
+<style>
+body{
+background:#111;
+color:#fff;
+font-family:Arial;
+padding:30px;
+}
+.container{
+max-width:700px;
+margin:auto;
+}
+.product-box{
+border:1px solid #333;
+padding:15px;
+border-radius:10px;
+margin-bottom:20px;
+}
+.product-box img{
+width:100px;
+border-radius:8px;
+}
+input,textarea{
+width:100%;
+padding:12px;
+margin:8px 0;
+background:#1a1a1a;
+border:1px solid #333;
+color:#fff;
+border-radius:8px;
+box-sizing:border-box;
+}
+.payment-box{
+margin-top:20px;
+padding:15px;
+border:1px solid #333;
+border-radius:10px;
+}
+button{
+width:100%;
+padding:15px;
+margin-top:20px;
+background:#d4a04a;
+border:none;
+font-weight:bold;
+cursor:pointer;
+border-radius:8px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Checkout</h2>
+<div id="productInfo" class="product-box"></div>
+<input id="name" placeholder="Full Name">
+<input id="phone" placeholder="Mobile Number">
+<textarea id="address" placeholder="Full Address"></textarea>
+<input id="city" placeholder="City">
+<input id="state" placeholder="State">
+<input id="pincode" placeholder="Pincode">
+<div class="payment-box">
+<h3>Select Payment Method</h3>
+<label>
+<input type="radio" name="payment" value="online" checked>
+Online Payment
+</label>
+<label>
+<input type="radio" name="payment" value="cod">
+Cash On Delivery
+</label>
+</div>
+<button onclick="placeOrder()">
+PLACE ORDER
+</button>
+</div>
+<script type="module">
+import { db } from "./firebase.js";
+import {
+collection,
+addDoc,
+serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const product =
+JSON.parse(
+localStorage.getItem("checkoutProduct")
+);
+if(product){
+document.getElementById("productInfo").innerHTML = `
+<img src="${product.image}">
+<h3>${product.name}</h3>
+<p>Qty: ${product.qty}</p>
+<p>Total: ₹${product.price * product.qty}</p>
+`;
+}
+window.placeOrder = async function(){
+const name =
+document.getElementById("name").value.trim();
+const phone =
+document.getElementById("phone").value.trim();
+const address =
+document.getElementById("address").value.trim();
+const city =
+document.getElementById("city").value.trim();
+const state =
+document.getElementById("state").value.trim();
+const pincode =
+document.getElementById("pincode").value.trim();
+if(
+!name ||
+!phone ||
+!address ||
+!city ||
+!state ||
+!pincode
+){
+alert("Please fill all details");
+return;
+}
+const paymentMethod =
+document.querySelector(
+'input[name="payment"]:checked'
+).value;
+/* COD ORDER */
+if(paymentMethod === "cod"){
+await addDoc(
+collection(db,"orders"),
+{
+customerName:name,
+phone,
+address,
+city,
+state,
+pincode,
+paymentMethod:"COD",
+product,
+status:"Pending",
+createdAt:serverTimestamp()
+}
+);
+alert("Order Placed Successfully ✅");
+localStorage.removeItem(
+"checkoutProduct"
+);
+window.location.href="index.html";
+return;
+}
+/* ONLINE PAYMENT */
+try{
+const response = await fetch(
+"http://localhost:5000/create-order",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+amount:
+Number(product.price) *
+Number(product.qty)
+})
+}
+);
+const order =
+await response.json();
+const options = {
+key:"rzp_live_SxDAPoGKvcv1pm",
+amount:order.amount,
+currency:"INR",
+name:"ALIZAFASHION",
+description:product.name,
+image:product.image,
+order_id:order.id,
+prefill:{
+name:name,
+contact:phone
+},
+theme:{
+color:"#d4a04a"
+},
+handler: async function(){
+await addDoc(
+collection(db,"orders"),
+{
+customerName:name,
+phone,
+address,
+city,
+state,
+pincode,
+paymentMethod:"ONLINE",
+paymentStatus:"Paid",
+product,
+status:"Confirmed",
+createdAt:serverTimestamp()
+}
+);
+alert("Payment Successful ✅");
+localStorage.removeItem(
+"checkoutProduct"
+);
+window.location.href="index.html";
+}
+};
+const rzp =
+new Razorpay(options);
+rzp.open();
+}catch(error){
+console.log(error);
+alert("Payment Failed");
+}
+}
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Dashboard
+</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:20px;
+background:#000;
+color:#fff;
+}
+
+input{
+display:block;
+margin-bottom:10px;
+padding:10px;
+width:250px;
+background:#111;
+border:1px solid #444;
+color:#fff;
+}
+
+button{
+padding:10px 20px;
+cursor:pointer;
+border:none;
+background:gold;
+font-weight:bold;
+margin-top:10px;
+}
+
+#products div,
+#orders div{
+margin-top:15px;
+background:#111;
+padding:10px;
+border-radius:5px;
+}
+
+img{
+border-radius:5px;
+}
+
+#msg{
+margin-top:10px;
+color:gold;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>
+Admin Panel
+</h1>
+
+<button id="logoutBtn">
+Logout
+</button>
+
+<hr>
+
+<!-- =========================
+ADD PRODUCT
+========================= -->
+
+<h2>
+Add Product
+</h2>
+
+<input
+type="text"
+id="name"
+placeholder="Product Name"
+>
+
+<input
+type="number"
+id="price"
+placeholder="Price"
+>
+
+<input
+type="file"
+id="image"
+accept="image/*"
+>
+
+<button
+id="addProductBtn"
+type="button"
+>
+Add Product
+</button>
+
+<p id="msg"></p>
+
+<hr>
+
+<!-- =========================
+PRODUCTS
+========================= -->
+
+<h2>
+Products
+</h2>
+
+<div id="products"></div>
+
+<hr>
+
+<!-- =========================
+ORDERS
+========================= -->
+
+<h2>
+Orders
+</h2>
+
+<div id="orders"></div>
+
+<!-- =========================
+SCRIPT
+========================= -->
+
+<script type="module">
+
+import {
+addProduct,
+logout
+} from "./admin.js";
+
+/* =========================
+ADMIN CHECK (PASTE HERE FIRST)
+========================= */
+
+auth.onAuthStateChanged((user) => {
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  if (user.uid !== "rbSEWiqhoQWJBR8cpel02XmuA") {
+    alert("Access Denied ❌ Only Admin Allowed");
+    auth.signOut();
+    window.location.href = "login.html";
+  }
+
+});
+
+/* =========================
+ADD PRODUCT
+========================= */
+
+document
+.getElementById("addProductBtn")
+.addEventListener(
+"click",
+addProduct
+);
+
+/* =========================
+LOGOUT
+========================= */
+
+document
+.getElementById("logoutBtn")
+.addEventListener(
+"click",
+logout
+);
+
+</script>
+
+</body>
+
+</html>

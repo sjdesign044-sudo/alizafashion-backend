@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Admin Login
+</title>
+
+<style>
+
+body{
+margin:0;
+padding:0;
+font-family:Arial;
+background:#000;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+color:#fff;
+}
+
+.login-box{
+width:350px;
+background:#111;
+padding:30px;
+border:1px solid #333;
+border-radius:10px;
+}
+
+h2{
+text-align:center;
+margin-bottom:25px;
+color:gold;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+background:#000;
+border:1px solid #444;
+color:#fff;
+outline:none;
+box-sizing:border-box;
+}
+
+button{
+width:100%;
+padding:12px;
+background:gold;
+border:none;
+font-weight:bold;
+cursor:pointer;
+font-size:16px;
+}
+
+button:hover{
+opacity:.9;
+}
+
+#msg{
+margin-top:15px;
+text-align:center;
+color:red;
+font-size:14px;
+word-break:break-word;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<h2>
+Admin Login
+</h2>
+
+<input
+id="email"
+type="email"
+placeholder="Email"
+>
+
+<input
+id="password"
+type="password"
+placeholder="Password"
+>
+
+<button id="loginBtn">
+Login
+</button>
+
+<p id="msg"></p>
+
+</div>
+
+<script type="module">
+
+import { auth }
+
+from "./firebase.js";
+
+import {
+
+signInWithEmailAndPassword
+
+}
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* =========================
+LOGIN
+========================= */
+
+const loginBtn =
+document.getElementById("loginBtn");
+
+loginBtn.addEventListener(
+"click",
+async () => {
+
+const email =
+document.getElementById("email")
+.value
+.trim();
+
+const password =
+document.getElementById("password")
+.value
+.trim();
+
+const msg =
+document.getElementById("msg");
+
+msg.innerText = "";
+
+if(!email || !password){
+
+msg.innerText =
+"Please Fill All Fields";
+
+return;
+
+}
+
+try{
+
+loginBtn.disabled = true;
+
+loginBtn.innerText =
+"Logging In...";
+
+await signInWithEmailAndPassword(
+auth,
+email,
+password
+);
+
+window.location.href =
+"dashboard.html";
+
+}catch(error){
+
+console.log(error);
+
+msg.innerText =
+error.message;
+
+}finally{
+
+loginBtn.disabled = false;
+
+loginBtn.innerText =
+"Login";
+
+}
+
+}
+);
+
+</script>
+
+</body>
+
+</html>

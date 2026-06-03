@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1 style="padding:20px;">🛒 Your Cart</h1>
+
+<div id="cartBox" style="padding:20px;"></div>
+
+<h2 id="total" style="padding:20px;color:#d4a04a;"></h2>
+
+<button onclick="openCheckout()" style="
+  margin:20px;
+  padding:15px 25px;
+  background:#d4a04a;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+">
+  Checkout
+</button>
+
+<!-- CHECKOUT FORM -->
+<div id="checkoutBox" style="display:none;padding:20px;">
+  <h2>Checkout</h2>
+
+  <input id="name" placeholder="Name" style="display:block;margin:10px;">
+  <input id="phone" placeholder="Phone" style="display:block;margin:10px;">
+  <textarea id="address" placeholder="Address" style="display:block;margin:10px;"></textarea>
+
+  <button onclick="placeOrder()" style="padding:10px 20px;">
+    Place Order
+  </button>
+</div>
+
+<script type="module">
+
+import { db } from "./firebase.js";
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* =========================
+LOAD CART
+========================= */
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+const cartBox = document.getElementById("cartBox");
+const totalBox = document.getElementById("total");
+
+function renderCart(){
+
+  cartBox.innerHTML = "";
+  let total = 0;
+
+  cart.forEach((item, index) => {
+
+    total += item.price * item.qty;
+
+    cartBox.innerHTML += `
+      <div style="border:1px solid #444;padding:10px;margin-bottom:10px;">
+        <img src="${item.image}" width="80">
+        <h3>${item.name}</h3>
+        <p>₹${item.price} x ${item.qty}</p>
+
+        <button onclick="removeItem(${index})">Remove</button>
+      </div>
+    `;
+  });
+
+  totalBox.innerText = "Total: ₹" + total;
+}
+
+renderCart();
+
+/* =========================
+REMOVE ITEM
+========================= */
+
+window.removeItem = (index) => {
+  cart.splice(index,1);
+  localStorage.setItem("cart",JSON.stringify(cart));
+  renderCart();
+};
+
+/* =========================
+CHECKOUT OPEN
+========================= */
+
+window.openCheckout = () => {
+  document.getElementById("checkoutBox").style.display = "block";
+};
+
+/* =========================
+PLACE ORDER (FIREBASE)
+========================= */
+
+window.placeOrder = async () => {
+
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const address = document.getElementById("address").value;
+
+  if(!name || !phone || !address){
+    alert("Fill all details");
+    return;
+  }
+
+  let total = 0;
+
+  cart.forEach(item => {
+    total += item.price * item.qty;
+  });
+
+  try{
+
+    await addDoc(collection(db,"orders"),{
+      customerName: name,
+      customerPhone: phone,
+      customerAddress: address,
+      items: cart,
+      total: total,
+      status: "Pending",
+      createdAt: serverTimestamp()
+    });
+
+    alert("Order Placed ✅");
+
+    localStorage.removeItem("cart");
+    window.location.reload();
+
+  }catch(err){
+    console.log(err);
+    alert(err.message);
+  }
+
+};
+
+</script>
+
+</body>
+</html>

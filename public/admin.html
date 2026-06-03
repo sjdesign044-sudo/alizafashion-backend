@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+ALIZAFASHION ADMIN
+</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:20px;
+background:#111;
+color:#fff;
+}
+
+input,
+select{
+display:block;
+margin-bottom:10px;
+padding:10px;
+width:250px;
+background:#222;
+border:1px solid #444;
+color:#fff;
+}
+
+button{
+padding:10px 20px;
+cursor:pointer;
+border:none;
+background:gold;
+font-weight:bold;
+margin-top:10px;
+}
+
+#products div,
+#orders div{
+margin-top:15px;
+background:#222;
+padding:10px;
+border-radius:5px;
+}
+
+img{
+border-radius:5px;
+}
+
+#msg{
+margin-top:10px;
+color:gold;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>
+Admin Dashboard
+</h1>
+
+<button id="logoutBtn">
+Logout
+</button>
+<div
+id="stats"
+style="
+display:flex;
+gap:20px;
+margin-top:20px;
+margin-bottom:20px;
+"
+>
+
+<div
+style="
+background:#222;
+padding:15px;
+border-radius:8px;
+"
+>
+
+<h3>Total Products</h3>
+
+<p id="totalProducts">
+0
+</p>
+
+</div>
+
+<div
+style="
+background:#222;
+padding:15px;
+border-radius:8px;
+"
+>
+
+<h3>Total Orders</h3>
+
+<p id="totalOrders">
+0
+</p>
+
+</div>
+
+</div>
+
+<hr>
+
+<h2>
+Add Product
+</h2>
+
+<input
+type="text"
+id="name"
+placeholder="Product Name"
+>
+
+<input
+type="number"
+id="price"
+placeholder="Price"
+>
+
+<textarea
+id="description"
+placeholder="Product Description"
+rows="4">
+</textarea>
+
+<input
+type="text"
+id="fabric"
+placeholder="Fabric Type"
+>
+
+<input
+type="number"
+id="stock"
+placeholder="Stock Quantity"
+>
+
+<select id="category">
+
+<option value="">
+Select Collection
+</option>
+
+<option value="New Arrivals">
+New Arrivals
+</option>
+
+<option value="Best Sellers">
+Best Sellers
+</option>
+
+<option value="Wedding Collection">
+Wedding Collection
+</option>
+
+<option value="Party Wear">
+Party Wear
+</option>
+
+<option value="Silk">
+Silk
+</option>
+
+<option value="Georgette">
+Georgette
+</option>
+
+<option value="Chinon">
+Chinon
+</option>
+
+<option value="Cora Checks">
+Cora Checks
+</option>
+
+<option value="Dola Silk">
+Dola Silk
+</option>
+
+<option value="Russian Silk">
+Russian Silk
+</option>
+
+<option value="French">
+French
+</option>
+
+<option value="Crepe">
+Crepe
+</option>
+
+<option value="Hamburg">
+Hamburg
+</option>
+
+</select>
+
+<input
+type="file"
+id="image"
+accept="image/*"
+>
+<img
+id="preview"
+src=""
+style="
+display:none;
+width:120px;
+margin-top:10px;
+border-radius:8px;
+">
+
+<button
+id="addProductBtn"
+type="button">
+Add Product
+</button>
+
+<p id="msg"></p>
+
+<hr>
+
+<h2>
+All Products
+</h2>
+
+<input
+type="text"
+id="searchProduct"
+placeholder="Search Product"
+>
+
+<div id="products"></div>
+
+<hr>
+
+<h2>
+All Orders
+</h2>
+
+<div id="orders"></div>
+
+<script type="module">
+
+import {
+addProduct,
+logout
+} from "./admin.js";
+
+document
+.getElementById("addProductBtn")
+.addEventListener(
+"click",
+addProduct
+);
+
+document
+.getElementById("logoutBtn")
+.addEventListener(
+"click",
+logout
+);
+
+</script>
+
+</body>
+
+</html>
