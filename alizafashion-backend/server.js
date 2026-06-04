@@ -12,7 +12,7 @@ app.use(express.json());
 
 console.log("KEY_ID =", process.env.RAZORPAY_KEY_ID);
 console.log("SECRET =", process.env.RAZORPAY_KEY_SECRET ? "FOUND" : "NOT FOUND");
-
+console.log("TEST =", process.env.TEST);
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
