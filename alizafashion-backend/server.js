@@ -24,6 +24,10 @@ app.get("/", (req, res) => {
 
 app.post("/create-order", async (req, res) => {
   try {
+    
+    console.log("CREATE ORDER HIT");
+console.log(req.body);
+
     const { amount } = req.body;
 
     const order = await razorpay.orders.create({

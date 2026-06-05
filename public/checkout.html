@@ -153,7 +153,7 @@ return;
 /* ONLINE PAYMENT */
 try{
 const response = await fetch(
-"http://localhost:5000/create-order",
+"https://alizafashion-backend.onrender.com/create-order",
 {
 method:"POST",
 headers:{
@@ -168,6 +168,7 @@ Number(product.qty)
 );
 const order =
 await response.json();
+console.log("ORDER RESPONSE:", order);
 const options = {
 key:"rzp_live_SxDAPoGKvcv1pm",
 amount:order.amount,
@@ -207,13 +208,22 @@ localStorage.removeItem(
 window.location.href="index.html";
 }
 };
-const rzp =
-new Razorpay(options);
+
+const rzp = new Razorpay(options);
+
 rzp.open();
+
 }catch(error){
-console.log(error);
-alert("Payment Failed");
+
+console.log("PAYMENT ERROR:", error);
+
+alert(
+"Payment Failed\n\n" +
+(error?.message || JSON.stringify(error))
+);
+
 }
+
 }
 </script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
