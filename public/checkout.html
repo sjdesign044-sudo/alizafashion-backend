@@ -458,14 +458,38 @@ contact:phone
 theme:{
 color:"#d4a04a"
 },
-handler: async function(){
+handler: async function (response) {
+
+const verify = await fetch(
+"https://alizafashion-backend.onrender.com/verify-payment",
+{
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+razorpay_order_id: response.razorpay_order_id,
+razorpay_payment_id: response.razorpay_payment_id,
+razorpay_signature: response.razorpay_signature
+})
+}
+);
+
+const result = await verify.json();
+
+if (!result.success) {
+
+alert("Payment Verification Failed ❌");
+
+return;
+
+}
 
 const orderNumber =
 "ALZ" + Date.now();
 
 await addDoc(
 collection(db,"orders"),
-
 {
 
 invoiceNo:"INV"+Date.now(),
@@ -499,11 +523,10 @@ paymentStatus:"Paid",
 
 status:"Confirmed",
 
-orderNumber:
-orderNumber,
+orderNumber:orderNumber,
 
-createdAt:
-serverTimestamp()
+createdAt:serverTimestamp()
+
 }
 );
 
@@ -511,13 +534,12 @@ localStorage.setItem(
 "lastOrderNumber",
 orderNumber
 );
-localStorage.removeItem(
-"checkoutProduct"
-);
 
+localStorage.removeItem("checkoutProduct");
 localStorage.removeItem("cart");
 
 window.location.href="order-success.html";
+
 }
 };
 
