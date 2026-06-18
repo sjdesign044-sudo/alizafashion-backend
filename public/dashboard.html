@@ -100,7 +100,126 @@ placeholder="Price"
 type="file"
 id="image"
 accept="image/*"
+multiple
 >
+
+<select
+id="category"
+style="
+width:250px;
+padding:10px;
+margin-bottom:10px;
+background:#111;
+border:1px solid #444;
+color:#fff;
+">
+
+<option value="">Select Category</option>
+
+<option value="NEW ARRIVALS">NEW ARRIVALS</option>
+
+<option value="BEST SELLERS">BEST SELLERS</option>
+
+<option value="WEDDING COLLECTION">WEDDING COLLECTION</option>
+
+<option value="PARTY WEAR">PARTY WEAR</option>
+
+<option value="Chinon Silk Saree">Chinon Silk Saree</option>
+
+<option value="Tussar Silk Saree">Tussar Silk Saree</option>
+
+<option value="Tissue Silk Saree">Tissue Silk Saree</option>
+
+<option value="Katan Silk Saree">Katan Silk Saree</option>
+
+<option value="Dola Silk Saree">Dola Silk Saree</option>
+
+<option value="Banarasi Silk Saree">Banarasi Silk Saree</option>
+
+</select>
+
+<input
+type="number"
+id="stock"
+placeholder="Stock"
+>
+
+<textarea
+id="description"
+placeholder="Description"
+style="
+width:250px;
+height:80px;
+background:#111;
+border:1px solid #444;
+color:#fff;
+padding:10px;
+margin-bottom:10px;
+"></textarea>
+
+<textarea
+id="details"
+placeholder="Product Details"
+style="
+width:250px;
+height:80px;
+background:#111;
+border:1px solid #444;
+color:#fff;
+padding:10px;
+margin-bottom:10px;
+"></textarea>
+
+<textarea
+id="fabric"
+placeholder="Fabric Information"
+style="
+width:250px;
+height:80px;
+background:#111;
+border:1px solid #444;
+color:#fff;
+padding:10px;
+margin-bottom:10px;
+"></textarea>
+
+<input
+type="text"
+id="blouseType"
+placeholder="Blouse Type"
+>
+
+<input
+type="text"
+id="sareeLength"
+placeholder="Saree Length"
+>
+
+<textarea
+id="shipping"
+placeholder="Shipping Information"
+style="
+width:250px;
+height:80px;
+background:#111;
+border:1px solid #444;
+color:#fff;
+padding:10px;
+margin-bottom:10px;
+"></textarea>
+
+<textarea
+id="returnPolicy"
+placeholder="Return Policy"
+style="
+width:250px;
+height:80px;
+background:#111;
+border:1px solid #444;
+color:#fff;
+padding:10px;
+margin-bottom:10px;
+"></textarea>
 
 <button
 id="addProductBtn"
@@ -121,6 +240,8 @@ PRODUCTS
 Products
 </h2>
 
+<h3>Total Products: <span id="totalProducts">0</span></h3>
+
 <div id="products"></div>
 
 <hr>
@@ -133,6 +254,8 @@ ORDERS
 Orders
 </h2>
 
+<h3>Total Orders: <span id="totalOrders">0</span></h3>
+
 <div id="orders"></div>
 
 <!-- =========================
@@ -140,6 +263,8 @@ SCRIPT
 ========================= -->
 
 <script type="module">
+
+  import { auth } from "./firebase.js";
 
 import {
 addProduct,
@@ -150,20 +275,9 @@ logout
 ADMIN CHECK (PASTE HERE FIRST)
 ========================= */
 
-auth.onAuthStateChanged((user) => {
+import { protectAdmin } from "./auth-guard.js";
 
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  if (user.uid !== "rbSEWiqhoQWJBR8cpel02XmuA") {
-    alert("Access Denied ❌ Only Admin Allowed");
-    auth.signOut();
-    window.location.href = "login.html";
-  }
-
-});
+protectAdmin();
 
 /* =========================
 ADD PRODUCT

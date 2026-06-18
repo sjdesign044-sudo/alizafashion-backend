@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Track Order</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family:Arial;padding:20px;background:#111;color:#fff;">
+
+<h1>Track Order</h1>
+
+<input
+id="orderId"
+placeholder="Enter Order Number (Example: ALZ123456)"
+style="
+width:100%;
+padding:12px;
+margin-top:15px;
+border-radius:8px;
+border:none;
+background:#222;
+color:#fff;
+box-sizing:border-box;
+">
+
+<button
+onclick="trackOrder()"
+style="
+margin-top:15px;
+padding:12px 20px;
+background:#d4a04a;
+border:none;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+">
+TRACK ORDER
+</button>
+
+<div id="result" style="margin-top:25px;"></div>
+
+<br>
+<a href="index.html" style="color:#d4a04a;">⬅ Back</a>
+
+<script type="module">
+console.log("TRACK PAGE LOADED");
+
+import { db } from "./firebase.js";
+
+import {
+collection,
+getDocs
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+window.trackOrder = async function(){
+
+console.log("TRACK BUTTON CLICKED");
+
+const orderNumber =
+document.getElementById("orderId").value.trim();
+
+if(!orderNumber){
+
+alert("Enter Order Number");
+
+return;
+
+}
+
+const result =
+document.getElementById("result");
+
+result.innerHTML = "Searching...";
+
+const snap =
+await getDocs(
+collection(db,"orders")
+);
+
+console.log(
+"TOTAL ORDERS:",
+snap.size
+);
+
+let found = null;
+
+snap.forEach((doc)=>{
+
+const data = doc.data();
+
+if(data.orderNumber === orderNumber){
+
+found = data;
+
+}
+
+});
+
+if(!found){
+
+result.innerHTML =
+"<p>❌ Order Not Found</p>";
+
+return;
+
+}
+
+result.innerHTML = `
+<div style="
+background:#1a1a1a;
+padding:20px;
+border-radius:10px;
+border:1px solid #333;
+">
+
+<h3>Order #${found.orderNumber}</h3>
+
+<p><b>Status:</b> ${found.status}</p>
+
+<p><b>Payment:</b> ${found.paymentMethod}</p>
+
+<p><b>Payment Status:</b> ${found.paymentStatus}</p>
+
+<p><b>Total:</b> ₹${found.total}</p>
+
+<p><b>Name:</b> ${found.customerName}</p>
+
+<p><b>Phone:</b> ${found.customerPhone}</p>
+
+<p><b>Address:</b> ${found.customerAddress}</p>
+
+</div>
+`;
+
+};
+
+</script>
+
+</body>
+</html>

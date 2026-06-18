@@ -53,34 +53,92 @@ MENU
 
 <a href="#">HOME</a>
 
-<a href="#">NEW ARRIVALS</a>
+<a href="category.html?cat=NEW ARRIVALS">
+NEW ARRIVALS
+</a>
 
-<a href="#">BEST SELLERS</a>
+<a href="category.html?cat=BEST SELLERS">
+BEST SELLERS
+</a>
 
-<a href="#">WEDDING COLLECTION</a>
+<a href="category.html?cat=WEDDING COLLECTION">
+WEDDING COLLECTION
+</a>
 
-<a href="#">PARTY WEAR</a>
+<a href="category.html?cat=PARTY WEAR">
+PARTY WEAR
+</a>
 
-<a href="#">SILK SAREES</a>
+<div class="accordion-item-menu">
 
-<a href="#">GEORGETTE</a>
+<div class="accordion-title">
+▶ COLLECTIONS
+</div>
 
-<a href="#">CHINON</a>
+<div class="accordion-content">
 
-<a href="#">SATIN SILK</a>
+<a href="category.html?cat=Chinon Silk Saree">Chinon Silk Saree</a>
 
-<a href="#">CORA CHECKS</a>
+<a href="category.html?cat=Tussar Silk Saree">Tussar Silk Saree</a>
 
-<a href="#">RUSSIAN SILK</a>
+<a href="category.html?cat=Tissue Silk Saree">Tissue Silk Saree</a>
 
-<a href="#">FRENCH</a>
+<a href="category.html?cat=Katan Silk Saree">Katan Silk Saree</a>
 
-<a href="#">ABOUT</a>
+<a href="category.html?cat=Dola Silk Saree">Dola Silk Saree</a>
 
-<a href="#">CONTACT</a>
+<a href="category.html?cat=Banarasi Silk Saree">Banarasi Silk Saree</a>
 
 </div>
 
+</div>
+
+<div class="accordion-item-menu">
+
+<div class="accordion-title">
+▶️ ABOUT US
+</div>
+
+<div class="accordion-content">
+
+<p>
+
+Alizafashion is a premium saree brand dedicated to bringing timeless elegance,
+luxurious fabrics and handcrafted beauty to every woman. We specialize in
+wedding collections, party wear sarees and premium silk sarees that combine
+traditional craftsmanship with modern fashion.
+
+</p>
+
+</div>
+
+</div>
+
+<div class="accordion-item-menu">
+
+<div class="accordion-title">
+▶ CONTACT US
+</div>
+
+<div class="accordion-content">
+
+<p>
+📞 6351576843
+</p>
+
+<p>
+📞 8787290788
+</p>
+
+<p>
+✉️ sjdesign044@gmail.com
+</p>
+
+</div>
+
+</div>
+
+</div>
 <!-- =========================
 SEARCH BOX
 ========================= -->
@@ -96,13 +154,19 @@ id="searchBox"
 type="text"
 id="searchInput"
 placeholder="Search Sarees..."
+autocomplete="off"
 >
 
 <div class="close-search">
-
 <i class="fa-solid fa-xmark"></i>
+</div>
 
 </div>
+
+<div
+id="searchResults"
+class="search-results"
+></div>
 
 </div>
 
@@ -138,9 +202,13 @@ ALIZA
 
 <a href="#">HOME</a>
 
-<a href="#">NEW ARRIVALS</a>
+<a href="category.html?cat=NEW ARRIVALS">
+NEW ARRIVALS
+</a>
 
-<a href="#">BEST SELLERS</a>
+<a href="category.html?cat=BEST SELLERS">
+BEST SELLERS
+</a>
 
 <a href="#">COLLECTIONS</a>
 
@@ -219,11 +287,7 @@ luxury and timeless Indian fashion aesthetics.
 
 <div class="hero-buttons">
 
-<button class="gold-btn">
-SHOP NOW
-</button>
-
-<button class="outline-btn">
+<button class="explore-btn" id="exploreCollection">
 EXPLORE COLLECTION
 </button>
 
@@ -327,9 +391,7 @@ OUR COLLECTIONS
 
 <div class="collection-card">
 
-<img
-src="images/shirt.jpg">
->
+<img src="images/shirt.jpg">
 
 <div class="overlay">
 
@@ -341,7 +403,7 @@ NEW ARRIVALS
 Luxury latest styles
 </p>
 
-<button>
+<button onclick="location.href='category.html?cat=New Arrivals'">
 VIEW COLLECTION
 </button>
 
@@ -351,9 +413,7 @@ VIEW COLLECTION
 
 <div class="collection-card">
 
-<img
-src="images/shirt1.jpg">
->
+<img src="images/shirt1.jpg">
 
 <div class="overlay">
 
@@ -365,7 +425,7 @@ SILK SAREES
 Royal silk elegance
 </p>
 
-<button>
+<button onclick="location.href='category.html?cat=Silk Sarees'">
 VIEW COLLECTION
 </button>
 
@@ -375,9 +435,7 @@ VIEW COLLECTION
 
 <div class="collection-card">
 
-<img
-src="images/shirt2.jpg">
->
+<img src="images/shirt2.jpg">
 
 <div class="overlay">
 
@@ -389,7 +447,7 @@ WEDDING COLLECTION
 Bridal luxury designs
 </p>
 
-<button>
+<button onclick="location.href='category.html?cat=Wedding Collection'">
 VIEW COLLECTION
 </button>
 
@@ -399,9 +457,7 @@ VIEW COLLECTION
 
 <div class="collection-card">
 
-<img
-src="images/shirt3.jpg">
->
+<img src="images/shirt3.jpg">
 
 <div class="overlay">
 
@@ -413,7 +469,7 @@ PARTY WEAR
 Elegant evening looks
 </p>
 
-<button>
+<button onclick="location.href='category.html?cat=Party Wear'">
 VIEW COLLECTION
 </button>
 
@@ -536,43 +592,17 @@ Discover timeless beauty with our exclusive collection of premium sarees.
 
 <div class="footer-box">
 
-<h3>
-QUICK LINKS
-</h3>
+<h3>CUSTOMER SERVICE</h3>
 
-<a href="#">
-Home
-</a>
-
-<a href="#">
-Collections
-</a>
-
-<a href="#">
-Best Sellers
-</a>
-
-<a href="#">
-New Arrivals
-</a>
-
-</div>
-
-<div class="footer-box">
-
-<h3>
-CUSTOMER SERVICE
-</h3>
-
-<a href="#">
+<a href="track-order.html" style="display:block; margin:8px 0; color:#ccc; text-decoration:none;">
 Track Order
 </a>
 
-<a href="#">
+<a href="shipping-policy.html" style="display:block; margin:8px 0; color:#ccc; text-decoration:none;">
 Shipping Policy
 </a>
 
-<a href="#">
+<a href="return-policy.html" style="display:block; margin:8px 0; color:#ccc; text-decoration:none;">
 Return Policy
 </a>
 
@@ -618,6 +648,42 @@ All Rights Reserved.
 SCRIPT
 ========================= -->
 
+<script>
+
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
+
+const btn =
+document.getElementById(
+"exploreCollection"
+);
+
+const menu =
+document.getElementById(
+"mobileMenu"
+);
+
+if(btn){
+
+btn.addEventListener(
+"click",
+()=>{
+
+menu.classList.add(
+"show"
+);
+
+}
+);
+
+}
+
+}
+);
+
+</script>
+
 <script
 type="module"
 src="script.js"
@@ -626,3 +692,10 @@ src="script.js"
 </body>
 
 </html>
+
+<!--
+<script
+type="module"
+src="script.js"
+></script>
+-->

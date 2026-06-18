@@ -120,6 +120,8 @@ window.placeOrder = async () => {
 
   try{
 
+    const orderNumber = "ALZ" + Date.now();
+
     await addDoc(collection(db,"orders"),{
       customerName: name,
       customerPhone: phone,
@@ -130,10 +132,9 @@ window.placeOrder = async () => {
       createdAt: serverTimestamp()
     });
 
-    alert("Order Placed ✅");
-
     localStorage.removeItem("cart");
-    window.location.reload();
+
+window.location.href = "order-success.html";
 
   }catch(err){
     console.log(err);

@@ -1,26 +1,29 @@
-import { initializeApp }
-
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-
-getFirestore,
-enableIndexedDbPersistence
-
+  getFirestore,
+  enableIndexedDbPersistence,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
-
-getAuth,
-onAuthStateChanged,
-signOut
-
+  getAuth,
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-
-getStorage
-
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 /* =========================
@@ -78,6 +81,22 @@ try{
 enableIndexedDbPersistence(db)
 .catch((err) => {
 
+if(err.code === "failed-precondition"){
+
+console.log(
+"Multiple Tabs Open"
+);
+
+}
+
+if(err.code === "unimplemented"){
+
+console.log(
+"Browser Not Supported"
+);
+
+}
+
 console.log(
 "Firestore Cache Error:",
 err.code
@@ -100,11 +119,15 @@ CURRENT USER
 
 let currentUser = null;
 
+window.currentUser = null;
+
 onAuthStateChanged(
 auth,
 (user) => {
 
 currentUser = user || null;
+
+window.currentUser = currentUser;
 
 }
 );
@@ -143,7 +166,11 @@ try{
 
 await signOut(auth);
 
-localStorage.clear();
+localStorage.removeItem("cart");
+
+localStorage.removeItem("wishlist");
+
+localStorage.removeItem("checkoutProduct");
 
 sessionStorage.clear();
 
@@ -162,6 +189,21 @@ alert(
 
 }
 
+function protectAdmin() {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    if (user.uid !== "rbSEWiqhoQWJBR8cpel02XmuAN43") {
+      alert("Access Denied ❌");
+      signOut(auth);
+      window.location.href = "login.html";
+    }
+  });
+}
+
 /* =========================
 GET USER
 ========================= */
@@ -177,19 +219,27 @@ EXPORTS
 ========================= */
 
 export {
+  db,
+  auth,
+  storage,
 
-db,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  addDoc,
 
-auth,
+  ref,
+  uploadBytes,
+  getDownloadURL,
 
-storage,
-
-requireAuth,
-
-logout,
-
-getUser
-
+  requireAuth,
+  logout,
+  getUser,
+  protectAdmin
 };
 
 console.log(

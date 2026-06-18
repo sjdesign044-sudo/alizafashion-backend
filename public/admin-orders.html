@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Orders</title>
+
+<style>
+body{
+background:#111;
+color:#fff;
+font-family:Arial;
+padding:20px;
+}
+
+.order{
+background:#1a1a1a;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+border:1px solid #333;
+}
+
+select{
+padding:8px;
+background:#222;
+color:#fff;
+border:1px solid #444;
+border-radius:6px;
+}
+
+button{
+padding:8px 15px;
+background:#d4a04a;
+border:none;
+border-radius:6px;
+font-weight:bold;
+cursor:pointer;
+margin-left:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>All Orders</h1>
+
+<div id="orders"></div>
+
+<script type="module">
+
+import { db } from "./firebase.js";
+
+import {
+collection,
+getDocs,
+doc,
+updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const box =
+document.getElementById("orders");
+
+async function loadOrders(){
+
+box.innerHTML = "Loading...";
+
+const snap =
+await getDocs(collection(db,"orders"));
+
+box.innerHTML = "";
+
+snap.forEach((d)=>{
+
+const data = d.data();
+
+box.innerHTML += `
+
+<div class="order">
+
+<h3>${data.orderNumber}</h3>
+
+<p><b>Name:</b>
+${data.customerName}</p>
+
+<p><b>Phone:</b>
+${data.customerPhone}</p>
+
+<p><b>Total:</b>
+₹${data.total}</p>
+
+<p><b>Payment:</b>
+${data.paymentMethod}</p>
+
+<p><b>Status:</b>
+${data.status}</p>
+
+<select id="status-${d.id}">
+<option value="Pending">Pending</option>
+<option value="Confirmed">Confirmed</option>
+<option value="Shipped">Shipped</option>
+<option value="Delivered">Delivered</option>
+<option value="Cancelled">Cancelled</option>
+</select>
+
+<button onclick="updateStatus('${d.id}')">
+Update
+</button>
+
+</div>
+
+`;
+
+setTimeout(()=>{
+
+const select =
+document.getElementById(
+`status-${d.id}`
+);
+
+if(select){
+select.value =
+data.status || "Pending";
+}
+
+},100);
+
+});
+
+}
+
+window.updateStatus =
+async function(id){
+
+const status =
+document.getElementById(
+`status-${id}`
+).value;
+
+await updateDoc(
+doc(db,"orders",id),
+{
+status:status
+}
+);
+
+alert(
+"Status Updated ✅"
+);
+
+loadOrders();
+
+};
+
+loadOrders();
+
+</script>
+
+</body>
+</html>

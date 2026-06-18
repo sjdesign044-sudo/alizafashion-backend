@@ -115,7 +115,8 @@ from "./firebase.js";
 
 import {
 
-signInWithEmailAndPassword
+signInWithEmailAndPassword,
+onAuthStateChanged
 
 }
 
@@ -156,35 +157,43 @@ return;
 
 }
 
-try{
+try {
 
-loginBtn.disabled = true;
+  loginBtn.disabled = true;
+  loginBtn.innerText = "Logging In...";
 
-loginBtn.innerText =
-"Logging In...";
+  await signInWithEmailAndPassword(auth, email, password);
 
-await signInWithEmailAndPassword(
-auth,
-email,
-password
+  console.log(
+"LOGIN UID:",
+auth.currentUser.uid
 );
 
-window.location.href =
-"dashboard.html";
+  // ✅ WAIT FOR AUTH STATE
+  onAuthStateChanged(auth, (user) => {
 
-}catch(error){
+    if (user) {
 
-console.log(error);
+      if (user.uid === "rbSEWiqhoQWJBR8cpel02XmuAN43") {
+        window.location.href = "dashboard.html";
+      } else {
+        alert("❌ Not Admin");
+        auth.signOut();
+      }
 
-msg.innerText =
-error.message;
+    }
 
-}finally{
+  });
 
-loginBtn.disabled = false;
+} catch (error) {
 
-loginBtn.innerText =
-"Login";
+  console.log(error);
+  msg.innerText = error.message;
+
+} finally {
+
+  loginBtn.disabled = false;
+  loginBtn.innerText = "Login";
 
 }
 

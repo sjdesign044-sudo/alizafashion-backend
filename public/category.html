@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Category Products</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+.category-title{
+text-align:center;
+padding:40px 20px 20px;
+font-size:40px;
+color:#d4a04a;
+font-family:'Cinzel',serif;
+}
+
+.products{
+padding:30px 7%;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1 class="category-title" id="categoryTitle">
+Category
+</h1>
+
+<section class="products">
+<div class="product-grid" id="productGrid"></div>
+</section>
+
+<script type="module">
+
+import { db } from "./firebase.js";
+
+import {
+collection,
+getDocs
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const category =
+new URLSearchParams(location.search)
+.get("cat");
+
+document.getElementById("categoryTitle").innerText =
+category || "Products";
+
+const productGrid =
+document.getElementById("productGrid");
+
+async function loadProducts(){
+
+const snap =
+await getDocs(
+collection(db,"products")
+);
+
+productGrid.innerHTML = "";
+
+snap.forEach((docItem)=>{
+
+const p = docItem.data();
+
+if(
+(p.category || "").trim().toLowerCase()
+!== (category || "").trim().toLowerCase()
+){
+return;
+}
+
+productGrid.innerHTML += `
+
+<div class="product-card"
+onclick="location.href='product.html?id=${docItem.id}'">
+
+<img src="${p.images?.[0] || p.image || ''}">
+
+<div class="product-info">
+
+<h3>${p.name}</h3>
+
+<h4>₹${p.price}</h4>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+if(productGrid.innerHTML === ""){
+
+productGrid.innerHTML = `
+
+<h2 style="
+text-align:center;
+grid-column:1/-1;
+">
+No Products Found
+</h2>
+
+`;
+
+}
+
+}
+
+loadProducts();
+
+</script>
+
+</body>
+</html>

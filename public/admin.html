@@ -142,11 +142,41 @@ placeholder="Product Description"
 rows="4">
 </textarea>
 
+<textarea
+id="details"
+placeholder="Product Details"
+rows="4">
+</textarea>
+
 <input
 type="text"
 id="fabric"
 placeholder="Fabric Type"
 >
+
+<input
+type="text"
+id="blouseType"
+placeholder="Blouse Type"
+>
+
+<input
+type="text"
+id="sareeLength"
+placeholder="Saree Length"
+>
+
+<textarea
+id="shipping"
+placeholder="Shipping Information"
+rows="3">
+</textarea>
+
+<textarea
+id="returnPolicy"
+placeholder="Exchange & Return Policy"
+rows="3">
+</textarea>
 
 <input
 type="number"
@@ -156,61 +186,27 @@ placeholder="Stock Quantity"
 
 <select id="category">
 
-<option value="">
-Select Collection
-</option>
+<option value="">Select Category</option>
 
-<option value="New Arrivals">
-New Arrivals
-</option>
+<option value="NEW ARRIVALS">NEW ARRIVALS</option>
 
-<option value="Best Sellers">
-Best Sellers
-</option>
+<option value="BEST SELLERS">BEST SELLERS</option>
 
-<option value="Wedding Collection">
-Wedding Collection
-</option>
+<option value="WEDDING COLLECTION">WEDDING COLLECTION</option>
 
-<option value="Party Wear">
-Party Wear
-</option>
+<option value="PARTY WEAR">PARTY WEAR</option>
 
-<option value="Silk">
-Silk
-</option>
+<option value="Chinon Silk Saree">Chinon Silk Saree</option>
 
-<option value="Georgette">
-Georgette
-</option>
+<option value="Tussar Silk Saree">Tussar Silk Saree</option>
 
-<option value="Chinon">
-Chinon
-</option>
+<option value="Tissue Silk Saree">Tissue Silk Saree</option>
 
-<option value="Cora Checks">
-Cora Checks
-</option>
+<option value="Katan Silk Saree">Katan Silk Saree</option>
 
-<option value="Dola Silk">
-Dola Silk
-</option>
+<option value="Dola Silk Saree">Dola Silk Saree</option>
 
-<option value="Russian Silk">
-Russian Silk
-</option>
-
-<option value="French">
-French
-</option>
-
-<option value="Crepe">
-Crepe
-</option>
-
-<option value="Hamburg">
-Hamburg
-</option>
+<option value="Banarasi Silk Saree">Banarasi Silk Saree</option>
 
 </select>
 
@@ -261,11 +257,18 @@ All Orders
 
 <script type="module">
 
-import {
-addProduct,
-logout
-} from "./admin.js";
+import { addProduct } from "./admin.js";
+import { logout } from "./admin.js";
+import { protectAdmin } from "./auth-guard.js";
 
+/* =========================
+SECURITY CHECK (ADMIN ONLY)
+========================= */
+protectAdmin();
+
+/* =========================
+ADD PRODUCT BUTTON
+========================= */
 document
 .getElementById("addProductBtn")
 .addEventListener(
@@ -273,6 +276,9 @@ document
 addProduct
 );
 
+/* =========================
+LOGOUT BUTTON
+========================= */
 document
 .getElementById("logoutBtn")
 .addEventListener(

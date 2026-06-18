@@ -23,29 +23,23 @@ body{
 }
 
 /* ================= SLIDER ================= */
-.slider-box{
-  width:420px;
-  max-width:100%;
-  position:relative;
-  overflow:hidden;
-  touch-action:pan-y;
-  border-radius:18px;
-  border:1px solid rgba(212,160,74,.25);
-  background:#0f0f0f;
-  padding:10px;
+.thumbs img,
+.thumbs img.active,
+.thumbs img:hover{
+border:none !important;
+box-shadow:none !important;
+outline:none !important;
 }
 
 .slider-box img{
   width:100%;
-  height:550px;
-  border-radius:14px;
-  object-fit:cover;
-  transition:all .35s ease;
-}
-
-.slider-box img.zoom{
-  transform:scale(2);
-  cursor:zoom-out;
+  height:500px;
+  object-fit:contain;
+  display:block;
+  background:#111;
+  touch-action:pinch-zoom;
+  -webkit-user-drag:none;
+  box-shadow:none;
 }
 
 /* nav */
@@ -53,14 +47,18 @@ body{
   position:absolute;
   top:50%;
   transform:translateY(-50%);
-  background:rgba(212,160,74,.9);
+  background:#d4a04a;
   color:#000;
+  border:none;
+  border-radius:10px;
+  width:36px;
+  height:36px;
+  font-size:16px;
   font-weight:bold;
-  width:42px;
-  height:42px;
   display:flex;
   align-items:center;
   justify-content:center;
+  cursor:pointer;
 }
 
 .prev{left:10px;}
@@ -92,12 +90,21 @@ transition:.3s;
 }
 
 .thumbs img.active{
-border-color:#d4a04a;
+border:none;
+box-shadow:none;
 }
 
 .thumbs img:hover{
 transform:scale(1.05);
-border-color:#d4a04a;
+border:none;
+}
+
+.thumbs img,
+.thumbs img.active,
+.thumbs img:hover{
+border:none !important;
+box-shadow:none !important;
+outline:none !important;
 }
 
 .dots span{
@@ -147,59 +154,23 @@ border-color:#d4a04a;
 }
 
 /* buttons */
+
 .btn{
-  padding:14px 24px;
+  height:42px;
+  padding:0 20px;
   border:none;
-  font-weight:bold;
+  font-weight:600;
   border-radius:6px;
   cursor:pointer;
-  margin-right:10px;
+  margin-right:8px;
+  font-size:14px;
 }
 
 .cart-btn,
 .buy-btn{
+min-width:140px;
   background:#d4a04a;
   color:#000;
-}
-
-/* ================= BADGES (FIXED LUXURY VERSION) ================= */
-.badges{
-  margin-top:18px;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  font-size:13px;
-  color:#fff;
-}
-
-.badges span{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 15px;
-  border:1px solid rgba(212,160,74,0.2);
-  border-radius:10px;
-  background:#161616;
-  transition:.3s;
-}
-
-.badges span:hover{
-  border-color:#d4a04a;
-  transform:translateX(4px);
-}
-
-/* ICON STYLE */
-.badges .icon{
-  width:16px;
-  height:16px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  border:1px solid rgba(212,160,74,0.5);
-  border-radius:50%;
-  font-size:10px;
-  color:#d4a04a;
-  background:transparent;
 }
 
 /* ================= ACCORDION ================= */
@@ -220,9 +191,10 @@ border-color:#d4a04a;
 }
 
 .arrow{
-  font-size:18px;
-  transition:0.3s;
-  color:#aaa;
+font-size:14px;
+color:#d4a04a;
+transition:.4s ease;
+font-weight:bold;
 }
 
 .accordion-item.active .arrow{
@@ -231,10 +203,12 @@ border-color:#d4a04a;
 }
 
 .accordion-body{
-  max-height:0;
-  overflow:hidden;
-  transition:0.35s ease;
-  color:#ccc;
+max-height:0;
+overflow:hidden;
+color:#ccc;
+transition:
+max-height .45s ease,
+padding .45s ease;
 }
 
 .accordion-item.active .accordion-body{
@@ -248,6 +222,10 @@ border-color:#d4a04a;
 
 /* ================= TOUCH ================= */
 .slider-box{
+  position:relative;
+  width:450px;
+  max-width:100%;
+  overflow:hidden;
   touch-action:pan-y;
 }
 
@@ -313,16 +291,19 @@ padding:0 7%;
 
 .highlight-box{
 background:#161616;
-border:1px solid #2f2f2f;
+border:none;
 border-radius:14px;
 padding:25px;
 text-align:center;
 transition:.3s;
+box-shadow:0 0 0 1px rgba(255,255,255,.06);
 }
 
 .highlight-box:hover{
-border-color:#d4a04a;
 transform:translateY(-5px);
+box-shadow:
+0 0 0 1px rgba(212,160,74,.25),
+0 10px 30px rgba(212,160,74,.12);
 }
 
 .highlight-icon{
@@ -339,6 +320,16 @@ font-size:22px;
 color:#d4a04a;
 }
 
+.highlight-icon svg{
+width:28px;
+height:28px;
+stroke:#d4a04a;
+fill:none;
+stroke-width:2;
+stroke-linecap:round;
+stroke-linejoin:round;
+}
+
 .highlight-box h3{
 margin-bottom:10px;
 color:#fff;
@@ -348,6 +339,62 @@ color:#fff;
 font-size:14px;
 color:#bdbdbd;
 line-height:1.6;
+}
+
+@media(max-width:768px){
+
+.product-wrapper{
+flex-direction:column;
+}
+
+.slider-box{
+width:100%;
+}
+
+.slider-box img{
+height:380px;
+}
+
+.info h1{
+font-size:24px;
+}
+
+.info h2{
+font-size:26px;
+}
+
+.btn{
+width:100%;
+margin-top:10px;
+margin-right:0;
+}
+
+.thumbs{
+justify-content:center;
+gap:8px;
+flex-wrap:nowrap;
+overflow-x:auto;
+padding:0 10px;
+}
+
+.thumbs img{
+width:65px;
+height:85px;
+object-fit:cover;
+flex-shrink:0;
+}
+
+.dots{
+justify-content:center;
+margin-top:10px;
+}
+
+.slider-box{
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
 }
 
 </style>
@@ -360,27 +407,59 @@ line-height:1.6;
 <div class="highlights-section">
 
 <div class="highlight-box">
-<div class="highlight-icon">★</div>
+
+<div class="highlight-icon">
+<svg viewBox="0 0 24 24">
+<path d="M12 2L14.8 8.2L21.5 8.8L16.5 13.2L18 20L12 16.5L6 20L7.5 13.2L2.5 8.8L9.2 8.2Z"/>
+</svg>
+</div>
+
 <h3>Premium Quality</h3>
 <p>Luxury fabric with premium finishing.</p>
+
 </div>
 
 <div class="highlight-box">
-<div class="highlight-icon">✓</div>
+
+<div class="highlight-icon">
+<svg viewBox="0 0 24 24">
+<path d="M12 2L20 6V12C20 17 16 20 12 22C8 20 4 17 4 12V6L12 2Z"/>
+<path d="M9 12L11 14L15 10"/>
+</svg>
+</div>
+
 <h3>100% Authentic</h3>
 <p>Trusted quality directly from ALIZAFASHION.</p>
+
 </div>
 
 <div class="highlight-box">
-<div class="highlight-icon">🚚</div>
+
+<div class="highlight-icon">
+<svg viewBox="0 0 24 24">
+<path d="M3 12H15"/>
+<path d="M11 8L15 12L11 16"/>
+<path d="M17 8H21"/>
+<path d="M17 16H21"/>
+</svg>
+</div>
+
 <h3>Fast Delivery</h3>
 <p>Delivery across India within 3–7 days.</p>
+
 </div>
 
 <div class="highlight-box">
-<div class="highlight-icon">🔒</div>
+
+<div class="highlight-icon">
+<svg viewBox="0 0 24 24">
+<path d="M12 3L19 7V12C19 17 15.5 20 12 21C8.5 20 5 17 5 12V7L12 3Z"/>
+</svg>
+</div>
+
 <h3>Secure Shopping</h3>
 <p>Safe ordering and customer support.</p>
+
 </div>
 
 </div>
@@ -395,7 +474,7 @@ line-height:1.6;
 
 <script type="module">
 
-import { db } from "./firebase.js";
+  import { db } from "./firebase.js";
 
 import {
 doc,
@@ -405,311 +484,438 @@ getDocs
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* =========================
+PRODUCT ID
+========================= */
 const id = new URLSearchParams(location.search).get("id");
+
+if(!id){
+
+location.href = "index.html";
+
+throw new Error("Product ID Missing");
+
+}
 
 let product=null;
 let images=[];
 let current=0;
 let qty=1;
-let startX=0;
 
 /* ================= LOAD ================= */
 async function loadProduct(){
 
-const snap = await getDoc(doc(db,"products",id));
-if(!snap.exists()) return;
+  const snap = await getDoc(
+doc(db,"products",id)
+);
 
-product = snap.data();
+if(!snap.exists()){
 
-images = product.images?.length ? product.images : [product.image];
+alert("Product Not Found");
 
-document.getElementById("productDetail").innerHTML = `
-<div class="product-wrapper">
+window.location.href =
+"index.html";
 
-<!-- SLIDER -->
-<div class="slider-box"
-ontouchstart="touchStart(event)"
-ontouchend="touchEnd(event)">
+return;
 
-<button class="nav prev" onclick="prev()">❮</button>
+}
 
-<img id="img" src="${images[0]}" onclick="zoom(this)">
+  product = snap.data();
+  images = product.images?.length ? product.images : [product.image];
 
-<button class="nav next" onclick="next()">❯</button>
+  document.getElementById("productDetail").innerHTML = `
+    <div class="product-wrapper">
 
-<div class="dots" id="dots"></div>
+      <div class="slider-box"
+      ontouchstart="touchStart(event)"
+      ontouchend="touchEnd(event)">
 
-<div id="thumbs" class="thumbs"></div>
+        <button class="nav prev" onclick="prev()">❮</button>
 
-</div>
+        <img id="img" src="${images[0] || 'https://via.placeholder.com/500'}">
 
-<!-- INFO -->
-<div class="info">
+        <button class="nav next" onclick="next()">❯</button>
 
-<h1>${product.name}</h1>
+        <div class="dots" id="dots"></div>
+        <div id="thumbs" class="thumbs"></div>
 
-<p style="
-color:#bdbdbd;
-margin:10px 0 15px;
-line-height:1.7;
-">
-${product.description || "Premium luxury collection crafted with elegance."}
-</p>
+      </div>
 
-<h2>₹${product.price}</h2>
+      <div class="info">
+        <h1>${product.name}</h1>
 
-<p>Taxes included</p>
-<p>Shipping calculated at checkout</p>
+        <p style="color:#bdbdbd;margin:10px 0 15px;line-height:1.7;">
+          ${product.description || "Premium luxury collection crafted with elegance."}
+        </p>
 
-<div class="qty-box">
-<button onclick="dec()">-</button>
-<span id="qtyText">1</span>
-<button onclick="inc()">+</button>
-</div>
+        <h2>₹${product.price}</h2>
 
-<button class="btn cart-btn" onclick="addToCart()">ADD TO CART</button>
-<button class="btn buy-btn" onclick="buyNow()">BUY NOW</button>
+        <div class="qty-box">
+          <button onclick="dec()">-</button>
+          <span id="qtyText">1</span>
+          <button onclick="inc()">+</button>
+        </div>
 
-</div>
-</div>
+        <button class="btn cart-btn" onclick="addToCart()">ADD TO CART</button>
+        <button class="btn buy-btn" onclick="buyNow()">BUY NOW</button>
 
-<!-- ACCORDION -->
-<div class="section">
+        <div class="section">
 
 ${acc(
-"Product Details",
+"📋 Product Details",
 product.details || product.description || "No details available."
 )}
 
 ${acc(
-"Fabric Information",
+"🧵 Fabric Information",
 product.fabric || "Premium Fabric"
 )}
 
 ${acc(
-"Shipping Information",
-"Delivery in 3–7 working days."
+"👚 Blouse Type",
+product.blouseType || "Running Blouse"
 )}
 
 ${acc(
-"Exchange & Return Policy",
-"7 days return available if unused."
+"📏 Saree Length",
+product.sareeLength || "5.5 Meter"
 )}
 
 ${acc(
-"Care Instructions",
-"Dry clean recommended."
+"🚚 Shipping Information",
+product.shipping || "Delivery in 3–7 working days."
 )}
 
 ${acc(
-"Disclaimer",
-"Color may vary slightly due to screen."
+"↺ Exchange & Return Policy",
+product.returnPolicy || "7 days return available if unused."
 )}
 
 </div>
-`;
 
-initDots();
-updateImage();
+      </div>
+    </div>
+  `;
 
-loadRelatedProducts();
+  initDots();
+  updateImage();
+
+  // 🔥 IMPORTANT: zoom yaha initialize hoga
+  initPinchZoom();
+
+  loadRelatedProducts();
 }
 
-async function loadRelatedProducts(){
-
-const box =
-document.getElementById("relatedProducts");
-
-if(!box) return;
-
-const snap =
-await getDocs(
-collection(db,"products")
-);
-
-box.innerHTML = "";
-
-snap.forEach((d)=>{
-
-if(d.id === id) return;
-
-const p = d.data();
-
-box.innerHTML += `
-
-<div
-class="related-card"
-onclick="location.href='product.html?id=${d.id}'"
->
-
-<img src="${p.image}">
-
-<div class="related-info">
-
-<h4>${p.name}</h4>
-
-<p>₹${p.price}</p>
-
-</div>
-
-</div>
-
-`;
-
-});
-
-}
-
-/* ================= ACCORDION ================= */
-function acc(title,text){
-return `
-<div class="accordion-item" onclick="this.classList.toggle('active')">
-<div class="accordion-header">
-<span>${title}</span>
-<span class="arrow">^</span>
-</div>
-<div class="accordion-body">${text}</div>
-</div>
-`;
-}
+window.addEventListener("load", loadProduct);
 
 /* ================= SLIDER ================= */
+
 function updateImage(){
+  document.getElementById("img").src =
+images[current] || "https://via.placeholder.com/500";
 
-document.getElementById("img").src =
-images[current];
+  document.querySelectorAll("#dots span")
+  .forEach((d,i)=>{
+    d.classList.toggle("active", i===current);
+  });
 
-document
-.querySelectorAll("#dots span")
-.forEach((d,i)=>{
-d.classList.toggle(
-"active",
-i===current
-);
-});
+  document.querySelectorAll("#thumbs img")
+  .forEach((img,i)=>{
+    img.classList.toggle("active", i===current);
+  });
 
-document
-.querySelectorAll("#thumbs img")
-.forEach((img,i)=>{
-img.classList.toggle(
-"active",
-i===current
-);
-});
+  scale = 1;
+  posX = 0;
+  posY = 0;
 
+  if (img) applyTransform();
 }
 
 function initDots(){
+  document.getElementById("dots").innerHTML =
+    images.map((_,i)=>`<span onclick="go(${i})"></span>`).join("");
 
-document.getElementById("dots").innerHTML =
-images.map((_,i)=>
-`<span onclick="go(${i})"></span>`
-).join("");
+  document.getElementById("thumbs").innerHTML =
+    images.map((img,i)=>`<img src="${img}" onclick="go(${i})">`).join("");
 
-document.getElementById("thumbs").innerHTML =
-images.map((img,i)=>
-`<img src="${img}" onclick="go(${i})">`
-).join("");
-
-updateImage();
-
+  updateImage();
 }
 
 window.next=()=>{
-current=(current+1)%images.length;
-updateImage();
+  current=(current+1)%images.length;
+  updateImage();
 };
 
 window.prev=()=>{
-current=(current-1+images.length)%images.length;
-updateImage();
+  current=(current-1+images.length)%images.length;
+  updateImage();
 };
 
 window.go=(i)=>{
-current=i;
-updateImage();
+  current=i;
+  updateImage();
 };
 
 /* ================= SWIPE ================= */
+
 window.touchStart=(e)=>{
-startX=e.touches[0].clientX;
+  startX=e.touches[0].clientX;
 };
 
 window.touchEnd=(e)=>{
-let endX=e.changedTouches[0].clientX;
-if(startX-endX>50) next();
-if(endX-startX>50) prev();
-};
-
-/* ================= ZOOM ================= */
-window.zoom=(img)=>{
-img.classList.toggle("zoom");
+  let endX=e.changedTouches[0].clientX;
+  if(startX-endX>50) next();
+  if(endX-startX>50) prev();
 };
 
 /* ================= QTY ================= */
+
 window.inc=()=>{
-qty++;
-document.getElementById("qtyText").innerText=qty;
+  qty++;
+  document.getElementById("qtyText").innerText=qty;
 };
 
 window.dec=()=>{
-if(qty>1) qty--;
-document.getElementById("qtyText").innerText=qty;
+  if(qty>1) qty--;
+  document.getElementById("qtyText").innerText=qty;
 };
 
-window.addToCart = () => {
+/* ================= ZOOM SYSTEM ================= */
 
-let cart =
-JSON.parse(localStorage.getItem("cart")) || [];
+let scale = 1;
+let posX = 0;
+let posY = 0;
 
-const existing =
-cart.find(item => item.id === id);
+let startDist = 0;
+let startScale = 1;
 
-if(existing){
+let startX = 0;
+let startY = 0;
 
-existing.qty += qty;
+let img = null;
 
-}else{
+let isDragging = false;
 
-cart.push({
-id:id,
-name:product.name,
-price:Number(product.price),
-image:product.image || images[0],
-qty:qty
+function initPinchZoom(){
+
+  img = document.getElementById("img");
+  if(!img) return;
+
+  img.style.touchAction = "none";
+
+  img.addEventListener("touchstart",(e)=>{
+
+    if(e.touches.length === 2){
+      startDist = getDist(e.touches[0], e.touches[1]);
+      startScale = scale;
+    }
+
+    if(e.touches.length === 1 && scale > 1){
+
+  isDragging = true;
+
+  startX = e.touches[0].clientX - posX;
+  startY = e.touches[0].clientY - posY;
+}
+
+  },{passive:false});
+
+  img.addEventListener("touchmove",(e)=>{
+
+  e.preventDefault();
+
+  if(e.touches.length === 2){
+
+    let newDist = getDist(e.touches[0], e.touches[1]);
+
+    if(startDist === 0) return;
+
+    scale = startScale * (newDist / startDist);
+
+    scale = Math.min(Math.max(scale,1),3);
+
+    applyTransform();
+  }
+
+  if(isDragging && e.touches.length === 1 && scale > 1){
+
+    posX = e.touches[0].clientX - startX;
+
+    posY = e.touches[0].clientY - startY;
+
+    applyTransform();
+  }
+
+},{passive:false});
+
+img.addEventListener("touchend",()=>{
+
+  isDragging = false;
+
+  if(scale <= 1){
+
+    posX = 0;
+    posY = 0;
+
+    applyTransform();
+  }
+
 });
 
 }
 
-localStorage.setItem(
-"cart",
-JSON.stringify(cart)
+function applyTransform(){
+  img.style.transform =
+`translate3d(${posX}px, ${posY}px, 0) scale(${scale})`;
+}
+
+function getDist(t1,t2){
+  let dx = t1.clientX - t2.clientX;
+  let dy = t1.clientY - t2.clientY;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+/* ================= CART ================= */
+
+window.addToCart = () => {
+
+  if(
+Number(product.stock || 0) <= 0
+){
+
+alert(
+"Out Of Stock"
 );
 
-alert("Product Added To Cart ✅");
+return;
 
+}
+
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  const existing = cart.find(item => item.id === id);
+
+  if(existing){
+    existing.qty += qty;
+  } else {
+    cart.push({
+      id,
+      name:product.name,
+      price:Number(product.price),
+      image:images[0] || product.image,
+      qty
+    });
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  alert("Product Added To Cart ✅");
 };
 
 window.buyNow = () => {
 
-localStorage.setItem(
-"checkoutProduct",
-JSON.stringify({
-id:id,
-name:product.name,
-price:Number(product.price),
-image:product.image || images[0],
-qty:qty
-})
+  if(
+Number(product.stock || 0) <= 0
+){
+
+alert(
+"Out Of Stock"
 );
 
-window.location.href = "checkout.html";
+return;
 
+}
+
+  localStorage.setItem("checkoutProduct", JSON.stringify({
+id,
+name:product.name,
+price:Number(product.price),
+image:images[0] || product.image,
+qty,
+stock:Number(product.stock || 0)
+}));
+
+  window.location.href = "checkout.html";
 };
 
-/* ================= INIT ================= */
-loadProduct();
+/* ================= RELATED ================= */
 
+function acc(title,text){
+
+return `
+<div class="accordion-item">
+
+<div class="accordion-header">
+<span>${title}</span>
+<span class="arrow">+</span>
+</div>
+
+<div class="accordion-body">
+${text}
+</div>
+
+</div>
+`;
+
+}
+
+document.addEventListener("click",(e)=>{
+
+const header =
+e.target.closest(".accordion-header");
+
+if(!header) return;
+
+const item = header.parentElement;
+
+item.classList.toggle("active");
+
+const arrow =
+item.querySelector(".arrow");
+
+arrow.textContent =
+item.classList.contains("active")
+? "−"
+: "+";
+
+});
+
+async function loadRelatedProducts(){
+
+  const box = document.getElementById("relatedProducts");
+  if(!box) return;
+
+  const snap = await getDocs(collection(db,"products"));
+
+  box.innerHTML = "";
+
+let count = 0;
+
+  for(const d of snap.docs){
+
+    if(count >= 4) break;
+
+    if(d.id === id) continue;
+
+    const p = d.data();
+
+    box.innerHTML += `
+      <div class="related-card"
+      onclick="location.href='product.html?id=${d.id}'">
+
+        <img src="${p.image || p.images?.[0] || 'https://via.placeholder.com/300'}">
+
+        <div class="related-info">
+          <h4>${p.name}</h4>
+          <p>₹${p.price}</p>
+        </div>
+
+      </div>
+    `;
+    count++;
+  }
+
+}
 </script>
 
 <!-- Razorpay Checkout -->

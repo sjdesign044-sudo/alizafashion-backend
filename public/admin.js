@@ -1,14 +1,15 @@
 import {
 db,
 storage,
-requireAuth,
-logout
+logout,
+protectAdmin
 } from "./firebase.js";
 
 import {
 collection,
 addDoc,
 getDocs,
+getDoc,
 deleteDoc,
 doc,
 serverTimestamp,
@@ -22,10 +23,10 @@ getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 /* =========================
-AUTH CHECK
+ADMIN PROTECTION
 ========================= */
 
-requireAuth();
+protectAdmin();
 
 window.logout = logout;
 
@@ -67,6 +68,18 @@ document.getElementById("details");
 const fabricInput =
 document.getElementById("fabric");
 
+const blouseTypeInput =
+document.getElementById("blouseType");
+
+const sareeLengthInput =
+document.getElementById("sareeLength");
+
+const shippingInput =
+document.getElementById("shipping");
+
+const returnPolicyInput =
+document.getElementById("returnPolicy");
+
 const stockInput =
 document.getElementById("stock");
 
@@ -75,21 +88,6 @@ document.getElementById("category");
 
 const imageInput =
 document.getElementById("image");
-
-const preview =
-document.getElementById("preview");
-
-imageInput.addEventListener("change",()=>{
-
-const file = imageInput.files[0];
-
-if(!file) return;
-
-preview.src = URL.createObjectURL(file);
-
-preview.style.display = "block";
-
-});
 
 const name =
 nameInput.value.trim();
@@ -101,10 +99,22 @@ const description =
 descriptionInput.value.trim();
 
 const details =
-detailsInput?.value.trim() || "";
+detailsInput ? detailsInput.value.trim() : "";
 
 const fabric =
-fabricInput?.value.trim() || "";
+fabricInput ? fabricInput.value.trim() : "";
+
+const blouseType =
+blouseTypeInput ? blouseTypeInput.value.trim() : "";
+
+const sareeLength =
+sareeLengthInput ? sareeLengthInput.value.trim() : "";
+
+const shipping =
+shippingInput ? shippingInput.value.trim() : "";
+
+const returnPolicy =
+returnPolicyInput ? returnPolicyInput.value.trim() : "";
 
 const stock =
 stockInput.value.trim();
@@ -112,31 +122,87 @@ stockInput.value.trim();
 const category =
 categoryInput.value;
 
-const file =
-imageInput.files[0];
+const files =
+imageInput.files;
 
 if(
 !name ||
 !price ||
 !description ||
 !stock ||
-!category ||
-!file
+!category
 ){
+setMsg("❌ Please Fill All Fields");
+return;
+}
 
-setMsg(
-"❌ Please Fill All Fields"
+try{
+
+  if(editingId){
+
+let updateData = {
+name,
+price:Number(price),
+description,
+details,
+fabric,
+blouseType,
+sareeLength,
+shipping,
+returnPolicy,
+stock:Number(stock),
+category
+};
+
+if(files.length > 0){
+
+const imageUrls = [];
+
+for(const file of files){
+
+const imageRef = ref(
+storage,
+`products/${Date.now()}_${file.name}`
 );
+
+await uploadBytes(imageRef,file);
+
+const url = await getDownloadURL(imageRef);
+
+imageUrls.push(url);
+
+}
+
+updateData.image = imageUrls[0];
+updateData.images = imageUrls;
+
+}
+
+await updateDoc(
+doc(db,"products",editingId),
+updateData
+);
+
+setMsg("✅ Product Updated");
+
+editingId = null;
+
+document.getElementById("addProductBtn").innerText =
+"Add Product";
+
+loadProducts();
 
 return;
 
 }
 
-try{
-
 setMsg(
 "📤 Uploading Product..."
 );
+
+const imageUrls = [];
+
+for(const file of files){
 
 const imageRef = ref(
 storage,
@@ -148,10 +214,12 @@ imageRef,
 file
 );
 
-const imageURL =
-await getDownloadURL(
-imageRef
-);
+const url =
+await getDownloadURL(imageRef);
+
+imageUrls.push(url);
+
+}
 
 await addDoc(
 collection(db,"products"),
@@ -163,14 +231,19 @@ price:Number(price),
 description,
 details,
 fabric,
+blouseType,
+sareeLength,
+
+shipping,
+returnPolicy,
 
 stock:Number(stock),
 
 category,
 
-image:imageURL,
+image:imageUrls[0],
 
-images:[imageURL],
+images:imageUrls,
 
 createdAt:
 serverTimestamp()
@@ -188,6 +261,12 @@ descriptionInput.value = "";
 stockInput.value = "";
 categoryInput.value = "";
 imageInput.value = "";
+detailsInput.value = "";
+fabricInput.value = "";
+blouseTypeInput.value = "";
+sareeLengthInput.value = "";
+shippingInput.value = "";
+returnPolicyInput.value = "";
 
 loadProducts();
 
@@ -202,6 +281,8 @@ setMsg(
 }
 
 }
+
+let editingId = null;
 
 window.addProduct =
 addProduct;
@@ -210,96 +291,50 @@ addProduct;
 EDIT PRODUCT
 ========================= */
 
-window.editProduct =
-async function(id){
+window.editProduct = async function(id){
 
-try{
+const snap =
+await getDoc(doc(db,"products",id));
 
-const newName =
-prompt(
-"Enter Product Name"
-);
+const p = snap.data();
 
-if(newName === null) return;
+editingId = id;
 
-const newPrice =
-prompt(
-"Enter Product Price"
-);
+document.getElementById("name").value =
+p.name || "";
 
-if(newPrice === null) return;
+document.getElementById("price").value =
+p.price || "";
 
-const newDescription =
-prompt(
-"Enter Description"
-);
+document.getElementById("description").value =
+p.description || "";
 
-if(newDescription === null) return;
+document.getElementById("details").value =
+p.details || "";
 
-const newDetails =
-prompt(
-"Enter Product Details"
-);
+document.getElementById("fabric").value =
+p.fabric || "";
 
-if(newDetails === null) return;
+document.getElementById("blouseType").value =
+p.blouseType || "";
 
-const newFabric =
-prompt(
-"Enter Fabric"
-);
+document.getElementById("sareeLength").value =
+p.sareeLength || "";
 
-if(newFabric === null) return;
+document.getElementById("shipping").value =
+p.shipping || "";
 
-const newStock =
-prompt(
-"Enter Stock Quantity"
-);
+document.getElementById("returnPolicy").value =
+p.returnPolicy || "";
 
-if(newStock === null) return;
+document.getElementById("stock").value =
+p.stock || "";
 
-const newCategory =
-prompt(
-"Enter Category"
-);
+document.getElementById("category").value =
+p.category || "";
 
-if(newCategory === null) return;
-
-await updateDoc(
-doc(db,"products",id),
-{
-
-name:newName,
-
-price:Number(newPrice),
-
-description:newDescription,
-
-details:newDetails,
-
-fabric:newFabric,
-
-stock:Number(newStock),
-
-category:newCategory
-
-}
-);
-
-setMsg(
-"✅ Product Updated Successfully"
-);
-
-loadProducts();
-
-}catch(error){
-
-console.log(error);
-
-setMsg(
-"❌ " + error.message
-);
-
-}
+document.getElementById("addProductBtn").innerText =
+"Update Product";
 
 };
 
@@ -319,8 +354,6 @@ async function loadProducts(){
     const snap =
     await getDocs(collection(db,"products"));
 
-    productsBox.innerHTML = "";
-
     if(snap.empty){
 
       productsBox.innerHTML = `
@@ -332,62 +365,53 @@ async function loadProducts(){
 
     let totalProducts = 0;
 
-    snap.forEach((d)=>{
+productsBox.innerHTML = "";
 
-      const p = d.data();
-      totalProducts++;
+snap.forEach((d) => {
+  totalProducts++;
 
-      productsBox.innerHTML += `
-        <div onclick="openProduct('${d.id}')"
-        style="
-          border:1px solid #444;
-          padding:15px;
-          margin-bottom:15px;
-          background:#222;
-          border-radius:8px;
-          cursor:pointer;
-        ">
+  const p = d.data();
 
-          <img
-            src="${p.image}"
-            width="120"
-            style="border-radius:5px;margin-bottom:10px;"
-          >
+  productsBox.innerHTML += `
+    <div onclick="openProduct('${d.id}')"
+    style="border:1px solid #444;padding:15px;margin-bottom:15px;background:#222;border-radius:8px;cursor:pointer;">
 
-          <h3>${p.name}</h3>
+      <img src="${p.image}" width="120" style="border-radius:5px;margin-bottom:10px;">
 
-          <p>💰 Price: <b>₹${p.price}</b></p>
+      <h3>${p.name}</h3>
 
-          <p>📦 Stock: <b>${p.stock || 0}</b></p>
+      <p>💰 Price: <b>₹${p.price}</b></p>
 
-          <p>🏷 Category: <b>${p.category || "-"}</b></p>
+      <p>📦 Stock: <b>${p.stock || 0}</b></p>
 
-          <p>📝 Description:<br>${p.description || "-"}</p>
+      <p>🏷 Category: <b>${p.category || "-"}</b></p>
 
-          <p>📋 Details:<br>${p.details || "-"}</p>
+      <p>📝 Description:<br>${p.description || "-"}</p>
 
-          <p>🧵 Fabric: <b>${p.fabric || "-"}</b></p>
+      <p>📋 Details:<br>${p.details || "-"}</p>
 
-          <br>
+      <p>🧵 Fabric: <b>${p.fabric || "-"}</b></p>
 
-          <button onclick="event.stopPropagation(); editProduct('${d.id}')"
-          style="margin-right:10px;">
-            Edit
-          </button>
+      <p>🚚 Shipping:<br>${p.shipping || "-"}</p>
 
-          <button onclick="event.stopPropagation(); deleteProduct('${d.id}')">
-            Delete
-          </button>
+<p>↺ Return Policy:<br>${p.returnPolicy || "-"}</p>
 
-        </div>
-      `;
+      <br>
 
-    });
+      <button onclick="event.stopPropagation(); editProduct('${d.id}')">
+        Edit
+      </button>
 
-    productsBox.innerHTML =
-    `<h3 style="color:gold;margin-bottom:15px;">
-      Total Products: ${totalProducts}
-    </h3>` + productsBox.innerHTML;
+      <button onclick="event.stopPropagation(); deleteProduct('${d.id}')">
+        Delete
+      </button>
+
+    </div>
+  `;
+});
+
+const tp = document.getElementById("totalProducts");
+if(tp) tp.innerText = totalProducts;
 
   }catch(error){
 
@@ -436,159 +460,77 @@ return;
 
 let totalOrders = 0;
 
-snap.forEach((d)=>{
+ordersBox.innerHTML = "";
 
-totalOrders++;
+snap.forEach((d) => {
+  totalOrders++;
 
-const o = d.data();
+  const o = d.data();
 
-let itemsHTML = "";
+  let itemsHTML = "";
 
-if(o.items){
+  if (o.items) {
+    o.items.forEach((item) => {
+      itemsHTML += `
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px;border-bottom:1px solid #333;padding-bottom:10px;">
 
-o.items.forEach((item)=>{
+          <img src="${item.image}" width="60" height="70" style="object-fit:cover;border-radius:5px;">
 
-itemsHTML += `
+          <div>
+            <b>${item.name}</b><br>
+            ₹${item.price}<br>
+            Qty: ${item.qty}
+          </div>
 
-<div style="
-display:flex;
-gap:10px;
-align-items:center;
-margin-top:10px;
-border-bottom:1px solid #333;
-padding-bottom:10px;
-">
+        </div>
+      `;
+    });
+  }
 
-<img
-src="${item.image}"
-width="60"
-height="70"
-style="
-object-fit:cover;
-border-radius:5px;
-">
+  ordersBox.innerHTML += `
+    <div style="border:1px solid #444;padding:15px;margin-bottom:15px;background:#222;border-radius:8px;">
 
-<div>
+      <h3>👤 ${o.customerName || "N/A"}</h3>
+      <p><b>Invoice No:</b> ${o.invoiceNo || "-"}</p>
+      <p><b>Date:</b> ${o.orderDate || "-"}</p>
+      <p>📞 ${o.customerPhone || "N/A"}</p>
+      <p>📍 ${o.customerAddress || "N/A"}</p>
 
-<b>
-${item.name}
-</b>
+      <hr style="margin:10px 0;">
 
-<br>
+      ${itemsHTML}
 
-₹${item.price}
+      <hr style="margin:10px 0;">
 
-<br>
+      <h4>💰 Total: ₹${o.total || 0}</h4>
 
-Qty:
-${item.qty}
+      <p>📦 Status: <b>${o.status || "Pending"}</b></p>
 
-</div>
-
-</div>
-
-`;
-
-});
-
-}
-
-ordersBox.innerHTML += `
-
-<div style="
-border:1px solid #444;
-padding:15px;
-margin-bottom:15px;
-background:#222;
-border-radius:8px;
-">
-
-<h3>
-👤 ${o.customerName || "N/A"}
-</h3>
-
-<p>
-📞 ${o.customerPhone || "N/A"}
-</p>
-
-<p>
-📍 ${o.customerAddress || "N/A"}
-</p>
-
-<hr style="margin:15px 0;">
-
-${itemsHTML}
-
-<hr style="margin:15px 0;">
-
-<h4>
-💰 Total:
-₹${o.total || 0}
-</h4>
-
-<p>
-
-📦 Status:
-
-<b style="
-color:gold;
-">
-
-${o.status || "Pending"}
-
-</b>
-
-</p>
-
-<br>
-
-<button
-onclick="updateStatus('${d.id}','Pending')">
-
-Pending
-
+      <button onclick="updateStatus('${d.id}','Pending')">Pending</button>
+      <button onclick="updateStatus('${d.id}','Shipped')">Shipped</button>
+      <button onclick="updateStatus('${d.id}','Delivered')">Delivered</button>
+      <button onclick="printInvoice('${d.id}')">
+Print Invoice
 </button>
 
-<button
-onclick="updateStatus('${d.id}','Shipped')">
-
-Shipped
-
+<button onclick="downloadInvoice('${d.id}')">
+Download PDF
 </button>
 
-<button
-onclick="updateStatus('${d.id}','Delivered')">
-
-Delivered
-
+<button onclick="sendWhatsapp('${d.id}')">
+WhatsApp
 </button>
 
-<button
-onclick="deleteOrder('${d.id}')">
-
+<button onclick="deleteOrder('${d.id}')">
 Delete
-
 </button>
 
-</div>
-
-`;
-
+    </div>
+  `;
 });
 
-ordersBox.innerHTML = `
-
-<h3 style="
-color:gold;
-margin-bottom:15px;
-">
-
-Total Orders:
-${totalOrders}
-
-</h3>
-
-` + ordersBox.innerHTML;
+const to = document.getElementById("totalOrders");
+if(to) to.innerText = totalOrders;
 
 }catch(error){
 
@@ -713,6 +655,393 @@ window.openProduct = (id) => {
 /* =========================
 EXPORTS
 ========================= */
+
+window.searchProducts = async function () {
+
+  try {
+
+    const value = document.getElementById("searchProduct").value.toLowerCase();
+    const productsBox = document.getElementById("products");
+
+    if (!productsBox) return;
+
+    const snap = await getDocs(collection(db, "products"));
+
+    productsBox.innerHTML = "";
+
+    snap.forEach((d) => {
+
+      const p = d.data();
+
+      const name = (p.name || "").toLowerCase();
+
+      if (!name.includes(value)) return;
+
+      productsBox.innerHTML += `
+        <div onclick="openProduct('${d.id}')"
+        style="border:1px solid #444;padding:15px;margin-bottom:15px;background:#222;border-radius:8px;cursor:pointer;">
+
+          <img src="${p.image}" width="120" style="border-radius:5px;margin-bottom:10px;">
+
+          <h3>${p.name}</h3>
+
+          <p>💰 Price: <b>₹${p.price}</b></p>
+          <p>📦 Stock: <b>${p.stock || 0}</b></p>
+          <p>🏷 Category: <b>${p.category || "-"}</b></p>
+
+          <button onclick="event.stopPropagation(); editProduct('${d.id}')">Edit</button>
+          <button onclick="event.stopPropagation(); deleteProduct('${d.id}')">Delete</button>
+
+        </div>
+      `;
+
+    });
+
+  } catch (error) {
+    console.log(error);
+    setMsg("❌ " + error.message);
+  }
+
+};
+
+window.filterByCategory = async function () {
+
+  try {
+
+    const value = document.getElementById("filterCategory").value;
+    const productsBox = document.getElementById("products");
+
+    if (!productsBox) return;
+
+    const snap = await getDocs(collection(db, "products"));
+
+    productsBox.innerHTML = "";
+
+    snap.forEach((d) => {
+
+      const p = d.data();
+
+      if (value && p.category !== value) return;
+
+      productsBox.innerHTML += `
+        <div onclick="openProduct('${d.id}')"
+        style="border:1px solid #444;padding:15px;margin-bottom:15px;background:#222;border-radius:8px;cursor:pointer;">
+
+          <img src="${p.image}" width="120" style="border-radius:5px;margin-bottom:10px;">
+
+          <h3>${p.name}</h3>
+
+          <p>💰 Price: <b>₹${p.price}</b></p>
+          <p>📦 Stock: <b>${p.stock || 0}</b></p>
+          <p>🏷 Category: <b>${p.category || "-"}</b></p>
+
+          <button onclick="event.stopPropagation(); editProduct('${d.id}')">Edit</button>
+          <button onclick="event.stopPropagation(); deleteProduct('${d.id}')">Delete</button>
+
+        </div>
+      `;
+
+    });
+
+  } catch (error) {
+    console.log(error);
+    setMsg("❌ " + error.message);
+  }
+
+};
+
+window.printInvoice = async function(id){
+
+const snap = await getDoc(doc(db,"orders",id));
+const o = snap.data();
+
+const invoiceNo = o.invoiceNo || ("INV" + id.substring(0,6).toUpperCase());
+const orderDate = o.orderDate || new Date().toLocaleDateString("en-IN");
+
+let items = "";
+
+o.items.forEach(item=>{
+
+items += `
+<tr>
+<td>${item.name}</td>
+<td style="text-align:center;">${item.qty}</td>
+<td style="text-align:right;">₹${item.price}</td>
+<td style="text-align:right;">₹${item.qty * item.price}</td>
+</tr>
+`;
+
+});
+
+const w = window.open("","","width=900,height=700");
+
+w.document.write(`
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Invoice</title>
+
+<style>
+
+@page{
+size:A4;
+margin:10mm;
+}
+
+body{
+font-family:Arial,sans-serif;
+margin:0;
+padding:0;
+color:#222;
+font-size:13px;
+}
+
+.container{
+padding:20px;
+}
+
+.header{
+text-align:center;
+border-bottom:3px solid #b8860b;
+padding-bottom:15px;
+margin-bottom:20px;
+}
+
+.header h1{
+margin:0;
+font-size:34px;
+letter-spacing:5px;
+color:#b8860b;
+}
+
+.header p{
+margin:4px 0;
+color:#666;
+}
+
+.info p{
+margin:5px 0;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th{
+background:#b8860b;
+color:#fff;
+padding:10px;
+border:1px solid #ddd;
+}
+
+td{
+padding:8px;
+border:1px solid #ddd;
+}
+
+.total{
+margin-top:20px;
+text-align:right;
+font-size:22px;
+font-weight:bold;
+color:#b8860b;
+}
+
+.sign{
+display:flex;
+justify-content:space-between;
+margin-top:50px;
+}
+
+.footer{
+margin-top:40px;
+background:#b8860b;
+color:white;
+padding:18px;
+border-radius:8px;
+text-align:center;
+}
+
+.footer p{
+margin:8px 0;
+font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<h1>ALIZAFASHION</h1>
+
+<p>Premium Ethnic Wear Collection</p>
+
+<p>Surat, Gujarat • India</p>
+
+</div>
+
+<div class="info">
+
+<p><b>Invoice No :</b> ${invoiceNo}</p>
+
+<p><b>Date :</b> ${orderDate}</p>
+
+<p><b>Customer :</b> ${o.customerName}</p>
+
+<p><b>Phone :</b> ${o.customerPhone}</p>
+
+<p><b>Address :</b> ${o.customerAddress}</p>
+
+</div>
+
+<table>
+
+<tr>
+
+<th>Product</th>
+
+<th>Qty</th>
+
+<th>Price</th>
+
+<th>Total</th>
+
+</tr>
+
+${items}
+
+</table>
+
+<div class="total">
+
+Grand Total : ₹${o.total}
+
+</div>
+
+<hr>
+
+<h3>Terms & Conditions</h3>
+
+<ul>
+
+<li>Goods once sold are not returnable.</li>
+
+<li>Exchange available as per company policy.</li>
+
+<li>Please keep this invoice for future reference.</li>
+
+</ul>
+
+<div class="sign">
+
+<div>
+
+_____________________
+
+<br><br>
+
+<b>Customer Signature</b>
+
+</div>
+
+<div style="text-align:center;">
+
+<b style="font-size:28px;color:#b8860b;font-family:cursive;">
+
+Aliza
+
+</b>
+
+<br>
+
+Authorized Signature
+
+</div>
+
+</div>
+
+<div class="footer">
+
+<h2 style="margin:0;">❤️ THANK YOU ❤️</h2>
+
+<p>
+
+Thank you for choosing <b>ALIZAFASHION</b>.
+
+</p>
+
+<p>
+
+We truly appreciate your trust and look forward to serving you again.
+
+</p>
+
+</div>
+
+</div>
+
+</body>
+
+</html>
+`);
+
+w.document.close();
+
+setTimeout(()=>{
+
+w.focus();
+
+w.print();
+
+w.onafterprint=()=>{
+
+w.close();
+
+};
+
+},500);
+
+};
+
+
+window.downloadInvoice = function(id){
+
+window.printInvoice(id);
+
+};
+
+window.sendWhatsapp = async function(id){
+
+const snap = await getDoc(doc(db,"orders",id));
+
+const o = snap.data();
+
+const msg =
+`🛍️ ALIZAFASHION
+
+Invoice : ${o.invoiceNo}
+
+Name : ${o.customerName}
+
+Total : ₹${o.total}
+
+Thank you for shopping with us ❤️`;
+
+window.open(
+`https://wa.me/91${o.customerPhone}?text=${encodeURIComponent(msg)}`,
+"_blank"
+);
+
+};
 
 export {
   addProduct,
