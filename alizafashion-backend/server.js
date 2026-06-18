@@ -3,13 +3,12 @@ import cors from "cors";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
 import admin from "firebase-admin";
-import fs from "fs";
 import crypto from "crypto";
 
 dotenv.config();
 
 const serviceAccount = JSON.parse(
-  fs.readFileSync("./serviceAccountKey.json", "utf8")
+  process.env.SERVICE_ACCOUNT
 );
 
 admin.initializeApp({
