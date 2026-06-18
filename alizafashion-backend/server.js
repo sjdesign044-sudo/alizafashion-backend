@@ -2,9 +2,21 @@ import express from "express";
 import cors from "cors";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
+import admin from "firebase-admin";
+import fs from "fs";
 import crypto from "crypto";
 
 dotenv.config();
+
+const serviceAccount = JSON.parse(
+  fs.readFileSync("./serviceAccountKey.json", "utf8")
+);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const firestore = admin.firestore();
 
 const app = express();
 
@@ -58,7 +70,12 @@ app.post("/verify-payment", async (req, res) => {
     const {
       razorpay_order_id,
       razorpay_payment_id,
-      razorpay_signature
+      razorpay_signature,
+      customerName,
+      customerPhone,
+      customerAddress,
+      product,
+      discountAmount
     } = req.body;
 
     const body =
@@ -69,23 +86,60 @@ app.post("/verify-payment", async (req, res) => {
         "sha256",
         process.env.RAZORPAY_KEY_SECRET
       )
-      .update(body.toString())
+      .update(body)
       .digest("hex");
 
-    if (expectedSignature === razorpay_signature) {
+    if (expectedSignature !== razorpay_signature) {
 
-      return res.json({
-        success: true
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Signature"
       });
 
     }
 
-    return res.status(400).json({
-      success: false,
-      message: "Invalid Signature"
+    const orderNumber = "ALZ" + Date.now();
+
+    await firestore.collection("orders").add({
+
+      invoiceNo: "INV" + Date.now(),
+
+      orderDate: new Date().toLocaleDateString("en-IN"),
+
+      customerName,
+      customerPhone,
+      customerAddress,
+
+      items: [{
+        id: product.id,
+        name: product.name,
+        image: product.image,
+        price: product.price,
+        qty: product.qty
+      }],
+
+      total:
+        (Number(product.price) * Number(product.qty))
+        - Number(discountAmount || 0),
+
+      paymentMethod: "ONLINE",
+      paymentStatus: "Paid",
+      status: "Confirmed",
+      orderNumber,
+
+      createdAt:
+        admin.firestore.FieldValue.serverTimestamp()
+
+    });
+
+    return res.json({
+      success: true,
+      orderNumber
     });
 
   } catch (err) {
+
+    console.log(err);
 
     return res.status(500).json({
       success: false,
