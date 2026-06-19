@@ -469,22 +469,17 @@ headers: {
 },
 body: JSON.stringify({
 
-  razorpay_order_id: response.razorpay_order_id,
+razorpay_order_id: response.razorpay_order_id,
+razorpay_payment_id: response.razorpay_payment_id,
+razorpay_signature: response.razorpay_signature,
 
-  razorpay_payment_id: response.razorpay_payment_id,
+customerName: name,
+customerPhone: phone,
+customerAddress: `${address}, ${city}, ${state}, ${pincode}`,
 
-  razorpay_signature: response.razorpay_signature,
+product: product,
 
-  customerName: name,
-
-  customerPhone: phone,
-
-  customerAddress:
-    `${address}, ${city}, ${state}, ${pincode}`,
-
-  product: product,
-
-  discountAmount: discountAmount
+discountAmount: discountAmount
 
 })
 }
@@ -500,60 +495,17 @@ return;
 
 }
 
-const orderNumber =
-"ALZ" + Date.now();
-
-await addDoc(
-collection(db,"orders"),
-{
-
-invoiceNo:"INV"+Date.now(),
-
-orderDate:new Date().toLocaleDateString("en-IN"),
-
-customerName:name,
-customerPhone:phone,
-
-customerAddress:
-`${address}, ${city}, ${state}, ${pincode}`,
-
-items:[
-{
-id:product.id,
-name:product.name,
-price:product.price,
-image:product.image,
-qty:product.qty
-}
-],
-
-total:
-(Number(product.price) *
-Number(product.qty))
-- discountAmount,
-
-paymentMethod:"ONLINE",
-
-paymentStatus:"Paid",
-
-status:"Confirmed",
-
-orderNumber:orderNumber,
-
-createdAt:serverTimestamp()
-
-}
-);
-
 localStorage.setItem(
 "lastOrderNumber",
-orderNumber
+result.orderNumber
 );
 
 localStorage.removeItem("checkoutProduct");
 localStorage.removeItem("cart");
 
-window.location.href="order-success.html";
+window.location.href = "order-success.html";
+
+return;
 
 }
 };
