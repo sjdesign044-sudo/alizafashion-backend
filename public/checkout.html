@@ -352,16 +352,15 @@ document.querySelector(
 /* COD ORDER */
 
 if(paymentMethod === "cod"){
-const orderNumber =
-"ALZ" + Date.now();
-await addDoc(
-collection(db,"orders"),
 
+const response = await fetch(
+"https://alizafashion-backend.onrender.com/create-cod-order",
 {
-
-invoiceNo:"INV"+Date.now(),
-
-orderDate:new Date().toLocaleDateString("en-IN"),
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
 
 customerName:name,
 customerPhone:phone,
@@ -369,50 +368,38 @@ customerPhone:phone,
 customerAddress:
 `${address}, ${city}, ${state}, ${pincode}`,
 
-items:[
-{
-id:product.id,
-name:product.name,
-price:product.price,
-image:product.image,
+productId:product.id,
 qty:product.qty
-}
-],
 
-total:
-Math.round(
-Number(product.price) *
-Number(product.qty)
-),
-
-paymentMethod:"COD",
-
-paymentStatus:"Pending",
-
-status:"Pending",
-
-orderNumber:
-orderNumber,
-
-createdAt:
-serverTimestamp()
+})
 }
 );
 
-localStorage.setItem(
-"lastOrderNumber",
-orderNumber
-);
-localStorage.removeItem(
-"checkoutProduct"
-);
+const result = await response.json();
 
-localStorage.removeItem("cart");
+if(!result.success){
+
+alert(result.message);
 
 btn.disabled = false;
 btn.innerText = "PLACE ORDER";
 
-window.location.href="order-success.html";
+orderProcessing = false;
+
+return;
+}
+
+localStorage.setItem(
+"lastOrderNumber",
+result.orderNumber
+);
+
+localStorage.removeItem("checkoutProduct");
+localStorage.removeItem("cart");
+
+window.location.href =
+"order-success.html";
+
 return;
 }
 
@@ -429,12 +416,18 @@ method:"POST",
 headers:{
 "Content-Type":"application/json"
 },
-body:JSON.stringify({
-amount:
-Math.round(
-(Number(product.price) * Number(product.qty))
-- discountAmount
-)
+body: JSON.stringify({
+
+productId: product.id,
+
+qty: product.qty,
+
+couponCode:
+document.getElementById("couponCode")
+.value
+.trim()
+.toUpperCase()
+
 })
 
 }
@@ -479,7 +472,12 @@ customerAddress: `${address}, ${city}, ${state}, ${pincode}`,
 
 product: product,
 
-discountAmount: discountAmount
+couponCode:
+document
+.getElementById("couponCode")
+.value
+.trim()
+.toUpperCase()
 
 })
 }
