@@ -42,9 +42,11 @@ origin:[
 "https://www.alizafashion.in",
 "https://alizafashion-40758.web.app"
 ],
-methods:["GET","POST"],
+methods:["GET","POST","OPTIONS"],
 allowedHeaders:["Content-Type"]
 }));
+
+app.options("*", cors());
 
 app.use(express.json());
 
