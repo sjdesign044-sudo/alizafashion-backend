@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
-    "firebase-admin": "^14.0.0"
+    "firebase-admin": "^14.0.0",
+    "razorpay": "^2.9.6"
   }
 }
