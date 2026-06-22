@@ -39,9 +39,10 @@ const app = express();
 app.use(cors({
 origin:[
 "https://alizafashion.in",
-"https://www.alizafashion.in"
+"https://www.alizafashion.in",
+"https://alizafashion-40758.web.app"
 ],
-methods:["GET","POST","OPTIONS"],
+methods:["GET","POST"],
 allowedHeaders:["Content-Type"]
 }));
 
