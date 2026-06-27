@@ -48,7 +48,9 @@ import { db } from "./firebase.js";
 
 import {
 collection,
-getDocs
+getDocs,
+query,
+where
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -72,9 +74,11 @@ document.getElementById("result");
 
 result.innerHTML = "Searching...";
 
-const snap =
-await getDocs(
-collection(db,"orders")
+const snap = await getDocs(
+  query(
+    collection(db, "orders"),
+    where("orderNumber", "==", orderNumber)
+  )
 );
 
 console.log(

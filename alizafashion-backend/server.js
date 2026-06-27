@@ -61,6 +61,10 @@ app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
+// =========================
+// 🟢 COD ORDER BLOCK
+// =========================
+
 app.post(
 "/create-order",
 orderLimiter,
@@ -117,6 +121,14 @@ if (product.active === false) {
 
 }
 
+if(Number(product.stock) < Number(qty)){
+
+return res.status(400).json({
+error:"Out of Stock"
+});
+
+}
+
 let finalDiscount = 0;
 
 if (couponCode) {
@@ -157,13 +169,8 @@ Number(qty) *
 }
 
 const amount =
-
-(Number(product.price) *
-
-Number(qty))
-
+(Number(product.price) * Number(qty))
 -
-
 finalDiscount;
 
 if (amount <= 0) {
@@ -188,6 +195,10 @@ if (amount <= 0) {
   }
 });
 
+// =========================
+// 🔵 ONLINE PAYMENT ORDER 
+// =========================
+
 app.post(
   "/verify-payment",
   orderLimiter,
@@ -206,6 +217,10 @@ app.post(
   couponCode
 } = req.body;
 
+/* =========================
+CUSTOMER VALIDATION
+========================= */
+
 if (
   !customerName ||
   !customerPhone ||
@@ -219,6 +234,10 @@ if (
 
 }
 
+/* =========================
+PHONE VALIDATION
+========================= */
+
 if (!/^[6-9]\d{9}$/.test(customerPhone)) {
 
   return res.status(400).json({
@@ -228,27 +247,25 @@ if (!/^[6-9]\d{9}$/.test(customerPhone)) {
 
 }
 
-const recentOrders = await firestore
-.collection("orders")
-.where("customerPhone","==",customerPhone)
-.where("paymentMethod","==","COD")
-.get();
-
-if (recentOrders.size >= 5) {
-
-return res.status(400).json({
-success:false,
-message:"Too many COD orders"
-});
-
+    if (!razorpay_order_id || !razorpay_payment_id) {
+  return res.status(400).json({
+    success: false,
+    message: "Missing payment details"
+  });
 }
 
-    const body =
-      razorpay_order_id + "|" + razorpay_payment_id;
+const body =
+  razorpay_order_id + "|" + razorpay_payment_id;
+
+
+      /* =========================
+DUPLICATE PAYMENT CHECK
+========================= */
 
       const existingOrder = await firestore
   .collection("orders")
   .where("razorpay_payment_id", "==", razorpay_payment_id)
+  .limit(1)
   .get();
 
 if (!existingOrder.empty) {
@@ -259,6 +276,10 @@ if (!existingOrder.empty) {
   });
 
 }
+
+/* =========================
+SIGNATURE VERIFICATION
+========================= */
 
     const expectedSignature = crypto
       .createHmac(
@@ -276,6 +297,10 @@ if (!existingOrder.empty) {
       });
 
     }
+
+    /* =========================
+FETCH PAYMENT FROM RAZORPAY
+========================= */
 
     const payment = await razorpay.payments.fetch(
   razorpay_payment_id
@@ -311,9 +336,25 @@ if (payment.order_id !== razorpay_order_id) {
 
 }
 
+/* =========================
+VERIFY PRODUCT
+========================= */
+
+/* VERIFY PRODUCT */
+
+if (!product || !product.id || !product.qty) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid Product Data"
+  });
+}
+
+const productId = product.id;
+const qty = product.qty;
+
 const productDoc = await firestore
   .collection("products")
-  .doc(product.id)
+  .doc(productId)
   .get();
 
 if (!productDoc.exists) {
@@ -328,9 +369,9 @@ if (!productDoc.exists) {
 const realProduct = productDoc.data();
 
 if (
-  !Number.isInteger(Number(product.qty)) ||
-  Number(product.qty) < 1 ||
-  Number(product.qty) > 10
+  !Number.isInteger(Number(qty)) ||
+  Number(qty) < 1 ||
+  Number(qty) > 10
 ) {
 
   return res.status(400).json({
@@ -348,6 +389,19 @@ if (realProduct.active === false) {
   });
 
 }
+
+if (Number(realProduct.stock) < Number(qty)) {
+
+  return res.status(400).json({
+    success: false,
+    message: "Out of Stock"
+  });
+
+}
+
+/* =========================
+VERIFY COUPON
+========================= */
 
 let finalDiscount = 0;
 
@@ -389,6 +443,9 @@ Number(product.qty) *
 
 }
 
+/* =========================
+VERIFY PAYMENT AMOUNT
+========================= */
 
 const expectedAmount =
 
@@ -410,6 +467,35 @@ if (payment.amount !== expectedAmount * 100) {
   });
 
 }
+
+/* =========================
+UPDATE PRODUCT STOCK
+========================= */
+
+await firestore.runTransaction(async (t) => {
+
+  const ref = firestore.collection("products").doc(productId);
+  const docSnap = await t.get(ref);
+
+  if (!docSnap.exists) {
+    throw new Error("Product not found");
+  }
+
+  const data = docSnap.data();
+
+  if (Number(data.stock) < Number(qty)) {
+    throw new Error("Out of Stock");
+  }
+
+  t.update(ref, {
+    stock: admin.firestore.FieldValue.increment(-Number(qty))
+  });
+
+});
+
+/* =========================
+SAVE ORDER
+========================= */
 
     const orderNumber = "ALZ" + Date.now();
 
@@ -507,6 +593,21 @@ message:"Invalid Phone Number"
 });
 }
 
+const recentOrders = await firestore
+.collection("orders")
+.where("customerPhone","==",customerPhone)
+.where("paymentMethod","==","COD")
+.get();
+
+if (recentOrders.size >= 5) {
+
+return res.status(400).json({
+success:false,
+message:"Too many COD orders"
+});
+
+}
+
 const productDoc = await firestore
 .collection("products")
 .doc(productId)
@@ -526,6 +627,7 @@ if (
 Number(qty) < 1 ||
 Number(qty) > 10
 ){
+
 return res.status(400).json({
 success:false,
 message:"Invalid Quantity"
@@ -538,9 +640,53 @@ success:false,
 message:"Product unavailable"
 });
 }
+if(Number(product.stock) < Number(qty)){
+
+return res.status(400).json({
+success:false,
+message:"Out of Stock"
+});
+
+}
+
+/* =========================
+UPDATE PRODUCT STOCK
+========================= */
+
+await firestore.runTransaction(async (t) => {
+  const ref = firestore.collection("products").doc(productId);
+  const docSnap = await t.get(ref);
+
+  if (!docSnap.exists) {
+    throw new Error("Product not found");
+  }
+
+  const data = docSnap.data();
+
+  if (!data) {
+    throw new Error("Product data missing");
+  }
+
+  if (data.active === false) {
+    throw new Error("Product unavailable");
+  }
+
+  if (Number(data.stock) < Number(qty)) {
+    throw new Error("Out of Stock");
+  }
+
+  t.update(ref, {
+    stock: admin.firestore.FieldValue.increment(-Number(qty))
+  });
+});
+
+/* =========================
+SAVE ORDER
+========================= */
 
 const orderNumber =
 "ALZ" + Date.now();
+
 
 await firestore
 .collection("orders")
