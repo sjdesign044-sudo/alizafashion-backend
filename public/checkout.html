@@ -133,7 +133,9 @@ import { db } from "./firebase.js";
 import {
 collection,
 addDoc,
-serverTimestamp
+serverTimestamp,
+getDoc,
+doc
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -181,7 +183,7 @@ let orderProcessing = false;
 
 let discountAmount = 0;
 
-window.applyCoupon = function(){
+window.applyCoupon = async function(){
 
 const paymentMethod =
 document.querySelector(
@@ -205,25 +207,24 @@ document.getElementById("couponCode")
 .trim()
 .toUpperCase();
 
+if(!code){
+
+document.getElementById("discountText").innerText =
+"Enter Coupon Code";
+
+return;
+
+}
+
 const total =
 Number(product.price) *
 Number(product.qty);
 
-if(code === "ALIZA10"){
+try{
 
-discountAmount =
-Math.floor(total * 0.10);
+const snap = await getDoc(doc(db,"coupons",code));
 
-document.getElementById("discountText").innerText =
-"10% Discount Applied ✅";
-
-document.getElementById("discountDisplay").innerText =
-"Discount: ₹" + discountAmount;
-
-document.getElementById("finalAmount").innerText =
-"Total Payable: ₹" + (total - discountAmount);
-
-}else{
+if(!snap.exists()){
 
 discountAmount = 0;
 
@@ -234,6 +235,47 @@ document.getElementById("discountDisplay").innerText = "";
 
 document.getElementById("finalAmount").innerText =
 "Total Payable: ₹" + total;
+
+return;
+
+}
+
+const coupon = snap.data();
+
+if(!coupon.active){
+
+discountAmount = 0;
+
+document.getElementById("discountText").innerText =
+"Coupon Disabled ❌";
+
+document.getElementById("discountDisplay").innerText = "";
+
+document.getElementById("finalAmount").innerText =
+"Total Payable: ₹" + total;
+
+return;
+
+}
+
+discountAmount =
+Math.floor(total * (coupon.discount/100));
+
+document.getElementById("discountText").innerText =
+coupon.discount + "% Discount Applied ✅";
+
+document.getElementById("discountDisplay").innerText =
+"Discount: ₹" + discountAmount;
+
+document.getElementById("finalAmount").innerText =
+"Total Payable: ₹" + (total-discountAmount);
+
+}catch(e){
+
+console.log(e);
+
+document.getElementById("discountText").innerText =
+"Coupon Error";
 
 }
 

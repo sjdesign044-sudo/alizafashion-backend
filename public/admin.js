@@ -13,7 +13,9 @@ getDoc,
 deleteDoc,
 doc,
 serverTimestamp,
-updateDoc
+updateDoc,
+setDoc,
+query
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
@@ -423,6 +425,88 @@ if(tp) tp.innerText = totalProducts;
 }
 
 /* =========================
+LOAD CUSTOMERS
+========================= */
+
+async function loadCustomers(){
+
+const customersBox =
+document.getElementById("customers");
+
+if(!customersBox) return;
+
+try{
+
+const snap =
+await getDocs(collection(db,"orders"));
+
+const customers = {};
+
+snap.forEach((d)=>{
+
+const o = d.data();
+
+if(!o.customerPhone) return;
+
+customers[o.customerPhone] = {
+name:o.customerName || "N/A",
+phone:o.customerPhone,
+address:o.customerAddress || "-"
+};
+
+});
+
+customersBox.innerHTML = "";
+
+Object.values(customers).forEach((c)=>{
+
+customersBox.innerHTML += `
+
+<div style="
+background:#222;
+padding:15px;
+margin-bottom:10px;
+border-radius:8px;
+">
+
+<h3>${c.name}</h3>
+
+<p>📞 ${c.phone}</p>
+
+<p>📍 ${c.address}</p>
+
+</div>
+
+`;
+
+});
+
+}catch(error){
+
+console.log(error);
+
+}
+
+}
+
+/* =========================
+LOAD RETURNS
+========================= */
+
+async function loadReturns(){
+
+const returnsBox =
+document.getElementById("returns");
+
+if(!returnsBox) return;
+
+returnsBox.innerHTML = `
+<h3>No Returns Found</h3>
+`;
+
+}
+
+/* =========================
 LOAD ORDERS
 ========================= */
 
@@ -639,9 +723,22 @@ window.deleteOrder = async function(id) {
 START
 ========================= */
 
-window.addEventListener("DOMContentLoaded", () => {
-  loadProducts();
-  loadOrders();
+window.addEventListener("DOMContentLoaded", async () => {
+
+  await loadProducts();
+
+  await loadOrders();
+
+  await loadReturns();
+
+  await loadCustomers();  
+  
+  await loadCoupons();
+
+  await loadAnalytics();
+
+  await updateDashboard();
+
 });
 
 /* =========================
@@ -1042,6 +1139,246 @@ window.open(
 );
 
 };
+
+async function updateDashboard(){
+
+const productSnap =
+await getDocs(
+collection(db,"products")
+);
+
+document.getElementById(
+"dashProducts"
+).innerText =
+productSnap.size;
+
+const orderSnap =
+await getDocs(
+collection(db,"orders")
+);
+
+document.getElementById(
+"dashOrders"
+).innerText =
+orderSnap.size;
+
+let revenue = 0;
+
+const customers = new Set();
+
+orderSnap.forEach(docu=>{
+
+const o = docu.data();
+
+revenue += Number(
+o.total || 0
+);
+
+if(o.customerPhone){
+
+customers.add(
+o.customerPhone
+);
+
+}
+
+});
+
+document.getElementById(
+"dashRevenue"
+).innerText =
+"₹" + revenue;
+
+document.getElementById(
+"dashCustomers"
+).innerText =
+customers.size;
+
+}
+
+window.updateDashboard = updateDashboard;
+
+async function loadCoupons(){
+
+const couponsBox =
+document.getElementById("coupons");
+
+if(!couponsBox) return;
+
+const snap =
+await getDocs(collection(db,"coupons"));
+
+couponsBox.innerHTML="";
+
+if(snap.empty){
+
+couponsBox.innerHTML="<h3>No Coupons</h3>";
+
+return;
+
+}
+
+snap.forEach(d=>{
+
+const c=d.data();
+
+couponsBox.innerHTML+=`
+
+<div style="
+background:#222;
+padding:15px;
+margin-bottom:10px;
+border-radius:8px;
+">
+
+<h3>${c.code}</h3>
+
+<p>
+
+Discount :
+<b>${c.discount}%</b>
+
+</p>
+
+<p>
+
+Status :
+<b>${c.active ? "✅ Active":"❌ Disabled"}</b>
+
+</p>
+
+<button
+onclick="toggleCoupon('${d.id}',${c.active})"
+>
+
+${c.active ? "Disable":"Enable"}
+
+</button>
+
+<button
+onclick="deleteCoupon('${d.id}')"
+>
+
+Delete
+
+</button>
+
+</div>
+
+`;
+
+});
+
+}
+
+window.addCoupon = async function(){
+
+const code =
+document.getElementById("couponName")
+.value
+.trim()
+.toUpperCase();
+
+const discount =
+Number(
+document.getElementById("couponDiscount").value
+);
+
+if(!code || !discount){
+
+alert("Fill Coupon Details");
+
+return;
+
+}
+
+await setDoc(
+
+doc(db,"coupons",code),
+
+{
+
+code,
+
+discount,
+
+active:true,
+
+createdAt:serverTimestamp()
+
+}
+
+);
+
+document.getElementById("couponName").value="";
+
+document.getElementById("couponDiscount").value="";
+
+loadCoupons();
+
+};
+
+window.toggleCoupon = async function(id,current){
+
+await updateDoc(
+
+doc(db,"coupons",id),
+
+{
+
+active:!current
+
+}
+
+);
+
+loadCoupons();
+
+};
+
+window.deleteCoupon = async function(id){
+
+if(!confirm("Delete Coupon?")) return;
+
+await deleteDoc(
+
+doc(db,"coupons",id)
+
+);
+
+loadCoupons();
+
+};
+
+async function loadAnalytics(){
+
+const analyticsBox =
+document.getElementById("analytics");
+
+if(!analyticsBox) return;
+
+const orderSnap =
+await getDocs(collection(db,"orders"));
+
+let revenue = 0;
+
+orderSnap.forEach(d=>{
+
+const o = d.data();
+
+revenue += Number(o.total || 0);
+
+});
+
+analyticsBox.innerHTML = `
+
+<h3>Total Revenue</h3>
+
+<h1>₹${revenue}</h1>
+
+`;
+
+}
 
 export {
   addProduct,

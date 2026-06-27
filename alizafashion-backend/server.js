@@ -119,17 +119,28 @@ if (product.active === false) {
 
 let finalDiscount = 0;
 
-if (couponCode === "ALIZA10") {
+if (couponCode) {
+
+const couponDoc = await firestore
+.collection("coupons")
+.doc(couponCode)
+.get();
+
+if (
+couponDoc.exists &&
+couponDoc.data().active &&
+Number(couponDoc.data().discount) > 0
+){
+
+const coupon = couponDoc.data();
 
 finalDiscount = Math.floor(
-
 Number(product.price) *
-
 Number(qty) *
-
-0.10
-
+(coupon.discount / 100)
 );
+
+}
 
 }
 
@@ -328,17 +339,28 @@ if (realProduct.active === false) {
 
 let finalDiscount = 0;
 
-if (couponCode === "ALIZA10") {
+if (couponCode) {
+
+const couponDoc = await firestore
+.collection("coupons")
+.doc(couponCode)
+.get();
+
+if (
+couponDoc.exists &&
+couponDoc.data().active &&
+Number(couponDoc.data().discount) > 0
+){
+
+const coupon = couponDoc.data();
 
 finalDiscount = Math.floor(
-
 Number(realProduct.price) *
-
 Number(product.qty) *
-
-0.10
-
+(coupon.discount / 100)
 );
+
+}
 
 }
 

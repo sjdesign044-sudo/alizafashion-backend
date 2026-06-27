@@ -80,6 +80,10 @@ Logout
 ADD PRODUCT
 ========================= -->
 
+<div
+id="addProductSection"
+>
+
 <h2>
 Add Product
 </h2>
@@ -232,35 +236,282 @@ Add Product
 
 <hr>
 
+</div>
+
 <!-- =========================
 PRODUCTS
 ========================= -->
 
+<div id="dashboardSection">
+
 <h2>
-Products
+Dashboard
 </h2>
 
-<h3>Total Products: <span id="totalProducts">0</span></h3>
+<div style="
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:15px;
+margin-bottom:25px;
+">
+
+<div style="
+background:#111;
+padding:20px;
+border-radius:10px;
+text-align:center;
+">
+<h3>Total Products</h3>
+<h1 id="dashProducts">0</h1>
+</div>
+
+<div style="
+background:#111;
+padding:20px;
+border-radius:10px;
+text-align:center;
+">
+<h3>Total Orders</h3>
+<h1 id="dashOrders">0</h1>
+</div>
+
+<div style="
+background:#111;
+padding:20px;
+border-radius:10px;
+text-align:center;
+">
+<h3>Total Revenue</h3>
+<h1 id="dashRevenue">₹0</h1>
+</div>
+
+<div style="
+background:#111;
+padding:20px;
+border-radius:10px;
+text-align:center;
+">
+<h3>Total Customers</h3>
+<h1 id="dashCustomers">0</h1>
+</div>
+
+</div>
+
+</div>
+
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+
+<button onclick="showSection('addProductSection')">
+Add Product
+</button>
+
+<button onclick="showSection('dashboardSection')">
+Dashboard
+</button>
+
+<button onclick="showSection('productsSection')">
+Products
+</button>
+
+<button onclick="showSection('ordersSection')">
+Orders
+</button>
+
+<button onclick="showSection('returnsSection')">
+Returns
+</button>
+
+<button onclick="showSection('customersSection')">
+Customers
+</button>
+
+<button onclick="showSection('couponsSection')">
+Coupons
+</button>
+
+<button onclick="showSection('analyticsSection')">
+Analytics
+</button>
+
+</div>
+
+
+<!-- PRODUCTS -->
+
+<div id="productsSection">
+
+<h2>Products</h2>
+
+<input
+type="text"
+id="searchProduct"
+placeholder="Search Product"
+onkeyup="searchProducts()"
+style="width:250px;"
+>
+
+<select
+id="filterCategory"
+onchange="filterByCategory()"
+style="width:250px;padding:10px;margin-top:10px;"
+>
+
+<option value="">All Categories</option>
+
+<option value="NEW ARRIVALS">NEW ARRIVALS</option>
+<option value="BEST SELLERS">BEST SELLERS</option>
+<option value="WEDDING COLLECTION">WEDDING COLLECTION</option>
+<option value="PARTY WEAR">PARTY WEAR</option>
+
+</select>
+
+<h3>
+Total Products:
+<span id="totalProducts">0</span>
+</h3>
 
 <div id="products"></div>
 
-<hr>
+</div>
 
-<!-- =========================
-ORDERS
-========================= -->
 
-<h2>
-Orders
-</h2>
+<!-- ORDERS -->
 
-<h3>Total Orders: <span id="totalOrders">0</span></h3>
+<div
+id="ordersSection"
+style="display:none;"
+>
+
+<h2>Orders</h2>
+
+<h3>
+Total Orders:
+<span id="totalOrders">0</span>
+</h3>
 
 <div id="orders"></div>
+
+</div>
+
+
+<!-- RETURNS -->
+
+<div
+id="returnsSection"
+style="display:none;"
+>
+
+<h2>Returns</h2>
+
+<div id="returns"></div>
+
+</div>
+
+
+<!-- CUSTOMERS -->
+
+<div
+id="customersSection"
+style="display:none;"
+>
+
+<h2>Customers</h2>
+
+<div id="customers"></div>
+
+</div>
+
+
+<!-- COUPONS -->
+
+<div
+id="couponsSection"
+style="display:none;"
+>
+
+<h2>Coupons</h2>
+
+<input
+id="couponName"
+placeholder="Coupon Code (Example: ALIZA10)"
+>
+
+<input
+id="couponDiscount"
+type="number"
+placeholder="Discount %"
+>
+
+<button onclick="addCoupon()">
+Add Coupon
+</button>
+
+<hr>
+
+<div id="coupons"></div>
+
+</div>
+
+
+<!-- ANALYTICS -->
+
+<div
+id="analyticsSection"
+style="display:none;"
+>
+
+<h2>Analytics</h2>
+
+<div id="analytics"></div>
+
+</div>
 
 <!-- =========================
 SCRIPT
 ========================= -->
+
+<script>
+
+function showSection(id){
+
+const sections = [
+
+"dashboardSection",
+"addProductSection",
+"productsSection",
+"ordersSection",
+"returnsSection",
+"customersSection",
+"couponsSection",
+"analyticsSection"
+
+];
+
+sections.forEach(sec=>{
+
+const el = document.getElementById(sec);
+
+if(el){
+el.style.display="none";
+}
+
+});
+
+const active =
+document.getElementById(id);
+
+if(active){
+active.style.display="block";
+}
+
+if(id==="dashboardSection" && window.updateDashboard){
+window.updateDashboard();
+}
+
+}
+
+</script>
+
 
 <script type="module">
 
