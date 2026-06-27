@@ -196,6 +196,82 @@ if (amount <= 0) {
 });
 
 // =========================
+// ❌ ORDER CANCELLATION SYSTEM
+// =========================
+
+app.post("/cancel-order", orderLimiter, async (req, res) => {
+  try {
+    const { orderNumber, reason } = req.body;
+
+    if (!orderNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Order number required"
+      });
+    }
+
+    const orderSnap = await firestore
+      .collection("orders")
+      .where("orderNumber", "==", orderNumber)
+      .limit(1)
+      .get();
+
+    if (orderSnap.empty) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    const orderRef = orderSnap.docs[0].ref;
+    const order = orderSnap.docs[0].data();
+
+    if (order.status === "Cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "Already cancelled"
+      });
+    }
+
+    if (["Delivered", "Cancelled"].includes(order.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel shipped order"
+      });
+    }
+
+    // RESTOCK
+
+    for (const item of order.items || []) {
+  await firestore
+    .collection("products")
+    .doc(item.id)
+    .update({
+      stock: admin.firestore.FieldValue.increment(item.qty)
+    });
+}
+
+    // UPDATE ORDER
+    await orderRef.update({
+      status: "Cancelled",
+      cancelReason: reason || "No reason",
+      cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return res.json({
+      success: true,
+      message: "Order cancelled successfully"
+    });
+
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+
+// =========================
 // 🔵 ONLINE PAYMENT ORDER 
 // =========================
 
