@@ -126,13 +126,22 @@ const couponDoc = await firestore
 .doc(couponCode)
 .get();
 
+const coupon = couponDoc.data();
+
+if (
+coupon.expiry &&
+coupon.expiry.toDate() < new Date()
+){
+return res.status(400).json({
+error: "Coupon Expired"
+});
+}
+
 if (
 couponDoc.exists &&
-couponDoc.data().active &&
-Number(couponDoc.data().discount) > 0
+coupon.active &&
+Number(coupon.discount) > 0
 ){
-
-const coupon = couponDoc.data();
 
 finalDiscount = Math.floor(
 Number(product.price) *
@@ -346,13 +355,24 @@ const couponDoc = await firestore
 .doc(couponCode)
 .get();
 
+const coupon = couponDoc.data();
+
 if (
 couponDoc.exists &&
-couponDoc.data().active &&
-Number(couponDoc.data().discount) > 0
+coupon.expiry &&
+coupon.expiry.toDate() < new Date()
 ){
+return res.status(400).json({
+success: false,
+message: "Coupon Expired"
+});
+}
 
-const coupon = couponDoc.data();
+if (
+couponDoc.exists &&
+coupon.active &&
+Number(coupon.discount) > 0
+){
 
 finalDiscount = Math.floor(
 Number(realProduct.price) *
