@@ -168,6 +168,15 @@ Your order has been placed successfully and our team will process it shortly.
 Order ID
 </div>
 
+<div class="order-id" id="cancelCode">
+Cancellation Code
+</div>
+
+<p style="margin-top:15px;color:#ffcc66;font-size:14px;">
+⚠️ Is Cancellation Code ko save karke rakhein.
+Agar future me order cancel karna ho to isi code ki zarurat padegi.
+</p>
+
 <p>
 
 You will receive order confirmation and delivery updates soon.
@@ -193,10 +202,20 @@ Track Order
 const orderNumber =
 localStorage.getItem("lastOrderNumber");
 
+const cancellationCode =
+localStorage.getItem("lastCancellationCode");
+
 if(orderNumber){
 
 document.getElementById("orderId").innerText =
 "Order ID : " + orderNumber;
+
+}
+
+if(cancellationCode){
+
+document.getElementById("cancelCode").innerText =
+"Cancellation Code : " + cancellationCode;
 
 }
 

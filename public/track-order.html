@@ -22,6 +22,20 @@ color:#fff;
 box-sizing:border-box;
 ">
 
+<input
+id="cancelCode"
+placeholder="Enter Cancellation Code"
+style="
+width:100%;
+padding:12px;
+margin-top:15px;
+border-radius:8px;
+border:none;
+background:#222;
+color:#fff;
+box-sizing:border-box;
+">
+
 <button
 onclick="trackOrder()"
 style="
@@ -33,8 +47,10 @@ border-radius:8px;
 font-weight:bold;
 cursor:pointer;
 ">
+
 TRACK ORDER
 </button>
+
 
 <div id="result" style="margin-top:25px;"></div>
 
@@ -121,6 +137,34 @@ border:1px solid #333;
 
 <p><b>Status:</b> ${found.status}</p>
 
+${found.status !== "Cancelled" &&
+found.status !== "Delivered"
+?
+`
+<br>
+
+<button
+onclick="cancelOrder()"
+style="
+padding:12px 20px;
+background:#ff4444;
+border:none;
+border-radius:8px;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">
+Cancel This Order
+</button>
+`
+:
+`
+<p style="color:#66ff99;">
+This order cannot be cancelled.
+</p>
+`
+}
+
 <p><b>Payment:</b> ${found.paymentMethod}</p>
 
 <p><b>Payment Status:</b> ${found.paymentStatus}</p>
@@ -135,6 +179,55 @@ border:1px solid #333;
 
 </div>
 `;
+
+};
+
+window.cancelOrder = async function(){
+
+const orderNumber =
+document.getElementById("orderId").value.trim();
+
+const cancellationCode =
+document.getElementById("cancelCode").value.trim().toUpperCase();
+
+if(!orderNumber || !cancellationCode){
+
+alert("Enter Order Number & Cancellation Code");
+
+return;
+
+}
+
+const response = await fetch(
+"https://alizafashion-backend.onrender.com/cancel-order",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+
+orderNumber,
+
+cancellationCode,
+
+reason:"Cancelled By Customer"
+
+})
+}
+);
+
+const result = await response.json();
+
+alert(result.message);
+
+if(result.success){
+
+setTimeout(() => {
+    trackOrder();
+}, 500);
+
+}
 
 };
 

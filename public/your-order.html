@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Your Orders</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body style="font-family:Arial;background:#111;color:#fff;padding:20px;">
+
+<h2>Your Orders</h2>
+
+<input id="phone" placeholder="Enter Phone Number"
+style="width:100%;padding:12px;margin-top:10px;background:#222;color:#fff;border:none;border-radius:8px;">
+
+<button onclick="loadOrders()"
+style="margin-top:10px;padding:10px 15px;background:#d4a04a;border:none;font-weight:bold;">
+Get Orders
+</button>
+
+<div id="orders" style="margin-top:20px;"></div>
+
+<script type="module">
+
+import { db } from "./firebase.js";
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+window.loadOrders = async function(){
+
+const phone = document.getElementById("phone").value;
+
+const q = query(collection(db,"orders"), where("customerPhone","==",phone));
+
+const snap = await getDocs(q);
+
+let html = "";
+
+snap.forEach(doc => {
+
+const d = doc.data();
+
+html += `
+<div style="background:#1a1a1a;padding:15px;margin-top:10px;border-radius:10px;">
+
+<h3>Order: ${d.orderNumber}</h3>
+<p>Status: ${d.status}</p>
+<p>Total: ₹${d.total}</p>
+
+${
+(d.status==="Pending" || d.status==="Confirmed")
+?
+`<button onclick="cancelOrder('${d.orderNumber}')"
+style="margin-top:10px;background:red;color:#fff;padding:8px;border:none;border-radius:6px;">
+Cancel Order
+</button>`
+:
+`<p style="color:#999;">Cancellation Not Available</p>`
+}
+
+</div>
+`;
+
+});
+
+document.getElementById("orders").innerHTML = html || "No Orders Found";
+};
+
+window.cancelOrder = async function(orderNumber){
+
+const reason = prompt("Cancel Reason?");
+
+if(reason===null){
+return;
+}
+
+const res = await fetch("https://alizafashion-backend.onrender.com/cancel-order", {
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({orderNumber,reason})
+});
+
+const data = await res.json();
+
+alert(data.message);
+
+loadOrders();
+
+};
+
+</script>
+
+</body>
+</html>

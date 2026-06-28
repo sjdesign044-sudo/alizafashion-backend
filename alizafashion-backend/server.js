@@ -195,15 +195,44 @@ if (amount <= 0) {
   }
 });
 
+app.get("/orders-by-number", async (req, res) => {
+  try {
+
+    const orderNumber = req.query.order;
+
+    const snap = await firestore
+      .collection("orders")
+      .where("orderNumber", "==", orderNumber)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.json(snap.docs[0].data());
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // =========================
 // ❌ ORDER CANCELLATION SYSTEM
 // =========================
 
 app.post("/cancel-order", orderLimiter, async (req, res) => {
   try {
-    const { orderNumber, reason } = req.body;
+    const {
+orderNumber,
+cancellationCode,
+reason
+} = req.body;
 
-    if (!orderNumber) {
+    if (
+!orderNumber ||
+!cancellationCode
+) {
       return res.status(400).json({
         success: false,
         message: "Order number required"
@@ -225,6 +254,18 @@ app.post("/cancel-order", orderLimiter, async (req, res) => {
 
     const orderRef = orderSnap.docs[0].ref;
     const order = orderSnap.docs[0].data();
+
+    if (
+  !order.cancellationCode ||
+  order.cancellationCode.toUpperCase() !== cancellationCode.toUpperCase()
+) {
+
+  return res.status(400).json({
+    success: false,
+    message: "Invalid Cancellation Code"
+  });
+
+}
 
     if (order.status === "Cancelled") {
       return res.status(400).json({
@@ -252,11 +293,13 @@ app.post("/cancel-order", orderLimiter, async (req, res) => {
 }
 
     // UPDATE ORDER
+
     await orderRef.update({
-      status: "Cancelled",
-      cancelReason: reason || "No reason",
-      cancelledAt: admin.firestore.FieldValue.serverTimestamp()
-    });
+  status: "Cancelled",
+  paymentStatus: "Refund Pending",
+  cancelReason: reason || "No reason",
+  cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+});
 
     return res.json({
       success: true,
@@ -416,8 +459,6 @@ if (payment.order_id !== razorpay_order_id) {
 VERIFY PRODUCT
 ========================= */
 
-/* VERIFY PRODUCT */
-
 if (!product || !product.id || !product.qty) {
   return res.status(400).json({
     success: false,
@@ -575,6 +616,9 @@ SAVE ORDER
 
     const orderNumber = "ALZ" + Date.now();
 
+    const cancellationCode =
+crypto.randomBytes(4).toString("hex").toUpperCase();
+
     await firestore.collection("orders").add({
 
   invoiceNo: "INV" + Date.now(),
@@ -613,14 +657,17 @@ qty: product.qty
 
   orderNumber,
 
-  createdAt:
-    admin.firestore.FieldValue.serverTimestamp()
+cancellationCode,
+
+createdAt:
+admin.firestore.FieldValue.serverTimestamp()
 
 });
 
     return res.json({
       success: true,
-      orderNumber
+      orderNumber,
+      cancellationCode
     });
 
   } catch (err) {
@@ -763,6 +810,10 @@ SAVE ORDER
 const orderNumber =
 "ALZ" + Date.now();
 
+const cancellationCode =
+crypto.randomBytes(4)
+.toString("hex")
+.toUpperCase();
 
 await firestore
 .collection("orders")
@@ -797,6 +848,8 @@ status:"Pending",
 
 orderNumber,
 
+cancellationCode,
+
 createdAt:
 admin.firestore.FieldValue.serverTimestamp()
 
@@ -804,7 +857,8 @@ admin.firestore.FieldValue.serverTimestamp()
 
 return res.json({
 success:true,
-orderNumber
+orderNumber,
+cancellationCode
 });
 
 }catch(err){

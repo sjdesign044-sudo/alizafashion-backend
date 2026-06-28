@@ -436,6 +436,11 @@ localStorage.setItem(
 result.orderNumber
 );
 
+localStorage.setItem(
+"lastCancellationCode",
+result.cancellationCode
+);
+
 localStorage.removeItem("checkoutProduct");
 localStorage.removeItem("cart");
 
@@ -538,6 +543,11 @@ return;
 localStorage.setItem(
 "lastOrderNumber",
 result.orderNumber
+);
+
+localStorage.setItem(
+"lastCancellationCode",
+result.cancellationCode
 );
 
 localStorage.removeItem("checkoutProduct");
