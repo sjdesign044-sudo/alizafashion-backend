@@ -28,6 +28,11 @@ window.loadOrders = async function(){
 
 const phone = document.getElementById("phone").value;
 
+if(!/^[6-9]\d{9}$/.test(phone)){
+alert("Enter Valid Mobile Number");
+return;
+}
+
 const q = query(collection(db,"orders"), where("customerPhone","==",phone));
 
 const snap = await getDocs(q);
@@ -39,21 +44,64 @@ snap.forEach(doc => {
 const d = doc.data();
 
 html += `
-<div style="background:#1a1a1a;padding:15px;margin-top:10px;border-radius:10px;">
+<div style="
+background:#1a1a1a;
+padding:15px;
+margin-top:15px;
+border-radius:12px;
+border:1px solid #333;
+">
 
-<h3>Order: ${d.orderNumber}</h3>
-<p>Status: ${d.status}</p>
-<p>Total: ₹${d.total}</p>
+<img
+src="${d.items[0].image}"
+style="
+width:100%;
+max-width:180px;
+border-radius:10px;
+display:block;
+margin:auto;
+">
+
+<h3 style="margin-top:15px;">
+${d.items[0].name}
+</h3>
+
+<p><b>Order Number:</b> ${d.orderNumber}</p>
+
+<p><b>Status:</b> ${d.status}</p>
+
+<p><b>Payment:</b> ${d.paymentMethod}</p>
+
+<p><b>Payment Status:</b> ${d.paymentStatus}</p>
+
+<p><b>Qty:</b> ${d.items[0].qty}</p>
+
+<p><b>Total:</b> ₹${d.total}</p>
+
+<p><b>Order Date:</b> ${d.orderDate}</p>
+
+<p><b>Cancellation Code:</b> ${d.cancellationCode}</p>
 
 ${
 (d.status==="Pending" || d.status==="Confirmed")
 ?
-`<button onclick="cancelOrder('${d.orderNumber}')"
-style="margin-top:10px;background:red;color:#fff;padding:8px;border:none;border-radius:6px;">
+`<button
+onclick="cancelOrder('${d.orderNumber}','${d.cancellationCode}')"
+style="
+margin-top:10px;
+background:#ff4444;
+color:#fff;
+padding:10px;
+border:none;
+border-radius:8px;
+width:100%;
+">
 Cancel Order
 </button>`
 :
-`<p style="color:#999;">Cancellation Not Available</p>`
+`<p style="color:#66ff99;">
+Cancellation Not Available
+</p>`
 }
 
 </div>
@@ -64,7 +112,7 @@ Cancel Order
 document.getElementById("orders").innerHTML = html || "No Orders Found";
 };
 
-window.cancelOrder = async function(orderNumber){
+window.cancelOrder = async function(orderNumber,cancellationCode){
 
 const reason = prompt("Cancel Reason?");
 
@@ -75,14 +123,25 @@ return;
 const res = await fetch("https://alizafashion-backend.onrender.com/cancel-order", {
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({orderNumber,reason})
+body:JSON.stringify({
+
+orderNumber,
+
+cancellationCode,
+
+reason
+
+})
+
 });
 
 const data = await res.json();
 
 alert(data.message);
 
+setTimeout(()=>{
 loadOrders();
+},500);
 
 };
 
