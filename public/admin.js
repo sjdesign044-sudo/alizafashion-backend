@@ -23,6 +23,7 @@ ref,
 uploadBytes,
 getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 
 /* =========================
 ADMIN PROTECTION
@@ -847,6 +848,12 @@ window.filterByCategory = async function () {
 
 };
 
+function line(pdf,x1,y1,x2,y2){
+
+pdf.line(x1,y1,x2,y2);
+
+}
+
 window.printInvoice = async function(id){
 
 const snap = await getDoc(doc(db,"orders",id));
@@ -1110,11 +1117,224 @@ w.close();
 };
 
 
-window.downloadInvoice = function(id){
+window.downloadInvoice = async function(id){
 
-window.printInvoice(id);
+const o = await getOrderData(id);
+
+const { jsPDF } = window.jspdf;
+
+const pdf = new jsPDF("p","mm","a4");
+
+const headerImg = new Image();
+
+headerImg.src = "./images/invoice-header.jpg";
+
+await new Promise((resolve,reject)=>{
+
+headerImg.onload = resolve;
+
+headerImg.onerror = reject;
+
+});
+
+pdf.addImage(
+    headerImg,
+    "JPEG",
+    0,
+    0,
+    210,
+    45
+);
+
+pdf.setTextColor(0);
+pdf.setFont("helvetica","bold");
+
+pdf.text("Invoice No :",15,58);
+pdf.text("Order Date :",120,58);
+
+pdf.setFont("helvetica","normal");
+
+pdf.text(o.invoiceNo || "-",45,58);
+pdf.text(o.orderDate || "-",155,58);
+
+pdf.setFont("helvetica","bold");
+pdf.text("Customer :",15,58);
+
+pdf.setFont("helvetica","normal");
+pdf.text(o.customerName || "-",45,58);
+
+pdf.setFont("helvetica","bold");
+pdf.text("Phone :",15,66);
+
+pdf.setFont("helvetica","normal");
+pdf.text(o.customerPhone || "-",45,66);
+
+pdf.setFont("helvetica","bold");
+pdf.text("Order No :",120,58);
+
+pdf.setFont("helvetica","normal");
+pdf.text(o.orderNumber || "-",155,58);
+
+pdf.setFont("helvetica","bold");
+pdf.text("Order Status :",120,66);
+
+pdf.setFont("helvetica","normal");
+pdf.text(o.status || "-",155,66);
+
+pdf.setFont("helvetica","bold");
+pdf.text("Payment :",120,74);
+
+pdf.setFont("helvetica","normal");
+pdf.text(o.paymentStatus || "-",155,74);
+
+pdf.setFont("helvetica","bold");
+pdf.text("Address :",15,74);
+
+pdf.setFont("helvetica","normal");
+
+pdf.text(
+pdf.splitTextToSize(o.customerAddress || "-",140),
+45,
+74
+);
+
+pdf.setFillColor(212,160,74);
+
+pdf.rect(15,92,180,10,"F");
+
+pdf.setTextColor(255);
+
+pdf.setFont("helvetica","bold");
+
+pdf.text("Product",18,99);
+pdf.text("Qty",112,99);
+pdf.text("Price",138,99);
+pdf.text("Total",170,99);
+
+pdf.setTextColor(0);
+
+let y = 110;
+
+pdf.setDrawColor(220);
+
+o.items.forEach(item=>{
+
+pdf.setFont("helvetica","normal");
+
+pdf.text(item.name,18,y);
+
+pdf.text(String(item.qty),112,y);
+
+pdf.text("₹"+item.price,138,y);
+
+pdf.text("₹"+(item.qty*item.price),170,y);
+
+pdf.line(15,y+3,195,y+3);
+
+y += 10;
+
+});
+
+pdf.line(15,y,195,y);
+
+y += 12;
+
+pdf.setFont("helvetica","bold");
+
+pdf.setFontSize(16);
+
+pdf.setTextColor(212,160,74);
+
+pdf.text("Grand Total : ₹"+o.total,125,y);
+
+y += 20;
+
+pdf.setFontSize(12);
+
+pdf.setTextColor(0);
+
+pdf.setFont("helvetica","bold");
+pdf.setFontSize(11);
+
+pdf.text(
+"Cancellation Code : " + (o.cancellationCode || "-"),
+15,
+y
+);
+
+y += 10;
+
+pdf.text("Terms & Conditions",15,y);
+
+y += 8;
+
+pdf.setFont("helvetica","normal");
+
+pdf.text("• Goods once sold are not returnable.",18,y);
+
+y += 6;
+
+pdf.text("• Exchange available as per company policy.",18,y);
+
+y += 6;
+
+pdf.text("• Please keep this invoice safely.",18,y);
+
+y += 25;
+
+pdf.setFont("courier","italic");
+
+pdf.setFontSize(18);
+
+pdf.setTextColor(212,160,74);
+
+pdf.text("Aliza",155,y);
+
+pdf.setFont("helvetica","normal");
+
+pdf.setTextColor(0);
+
+pdf.setFontSize(10);
+
+pdf.text("Authorized Signature",145,y+8);
+
+pdf.setFillColor(212,160,74);pdf.setFont("helvetica","normal");
+pdf.setFontSize(10);
+pdf.setTextColor(80);
+
+pdf.text(
+"Customer Care : +91 6351576843",
+15,
+268
+);
+
+pdf.text(
+"www.alizafashion.in",
+145,
+268
+);
+
+
+
+pdf.rect(15,275,180,15,"F");
+
+pdf.setTextColor(255);
+
+pdf.setFontSize(12);
+
+pdf.text("❤️ THANK YOU FOR SHOPPING WITH ALIZAFASHION ❤️",105,284,{align:"center"});
+
+pdf.save((o.invoiceNo || "Invoice")+".pdf");
 
 };
+
+async function getOrderData(id){
+
+const snap = await getDoc(doc(db,"orders",id));
+
+return snap.data();
+
+}
 
 window.sendWhatsapp = async function(id){
 
