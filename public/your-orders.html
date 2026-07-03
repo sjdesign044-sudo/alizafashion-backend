@@ -80,8 +80,6 @@ ${d.items[0].name}
 
 <p><b>Order Date:</b> ${d.orderDate}</p>
 
-<p><b>Cancellation Code:</b> ${d.cancellationCode}</p>
-
 ${
 (d.status==="Pending" || d.status==="Confirmed")
 ?
@@ -99,8 +97,8 @@ width:100%;
 Cancel Order
 </button>`
 :
-`<p style="color:#66ff99;">
-Cancellation Not Available
+`<p style="color:#66ff99;font-weight:bold;">
+✅ Cancelled Successfully
 </p>`
 }
 
@@ -112,7 +110,21 @@ Cancellation Not Available
 document.getElementById("orders").innerHTML = html || "No Orders Found";
 };
 
-window.cancelOrder = async function(orderNumber,cancellationCode){
+window.cancelOrder = async function(orderNumber, realCancellationCode){
+
+const enteredCode = prompt("Enter Cancellation Code");
+
+if(enteredCode===null){
+return;
+}
+
+if(enteredCode.trim().toUpperCase() !== realCancellationCode){
+
+alert("❌ Invalid Cancellation Code");
+
+return;
+
+}
 
 const reason = prompt("Cancel Reason?");
 
@@ -120,20 +132,24 @@ if(reason===null){
 return;
 }
 
-const res = await fetch("https://alizafashion-backend.onrender.com/cancel-order", {
+const res = await fetch(
+"https://alizafashion-backend.onrender.com/cancel-order",
+{
 method:"POST",
-headers:{"Content-Type":"application/json"},
+headers:{
+"Content-Type":"application/json"
+},
 body:JSON.stringify({
 
 orderNumber,
 
-cancellationCode,
+cancellationCode: realCancellationCode,
 
 reason
 
 })
-
-});
+}
+);
 
 const data = await res.json();
 
