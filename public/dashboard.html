@@ -333,6 +333,10 @@ Coupons
 Analytics
 </button>
 
+<button onclick="showSection('bannersSection')">
+Banners
+</button>
+
 </div>
 
 
@@ -433,7 +437,7 @@ style="display:none;"
 
 <input
 id="couponName"
-placeholder="Coupon Code (Example: ALIZA10)"
+placeholder="Coupon Code (Example: AURA10)"
 >
 
 <input
@@ -449,6 +453,28 @@ Add Coupon
 <hr>
 
 <div id="coupons"></div>
+
+</div>
+
+<!-- =================
+  BANNER SECTION 
+  ================= -->
+
+<div id="bannersSection" style="display:none;">
+
+<h2>Banners</h2>
+
+<input id="bannerTitle" placeholder="Banner Title">
+
+<input type="file" id="bannerImage">
+
+<input id="bannerLink" placeholder="Banner Link">
+
+<button onclick="addBanner()">Add Banner</button>
+
+<hr>
+
+<div id="banners"></div>
 
 </div>
 
@@ -483,8 +509,8 @@ const sections = [
 "returnsSection",
 "customersSection",
 "couponsSection",
-"analyticsSection"
-
+"analyticsSection",
+"bannersSection"
 ];
 
 sections.forEach(sec=>{
@@ -553,12 +579,6 @@ logout
 );
 
 </script>
-
-<!-- PDF LIBRARY -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </body>
 

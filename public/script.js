@@ -10,7 +10,7 @@ updateDoc,
 doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-console.log("ALIZAFASHION FINAL");
+console.log("AURAWEAVES FINAL");
 
 /* =========================
 MENU
@@ -659,7 +659,7 @@ document.getElementById("couponCode")
 .trim()
 .toUpperCase();
 
-if(code === "ALIZA10"){
+if(code === "AURA10"){
 
 discountAmount =
 Math.floor(total * 0.10);

@@ -18,12 +18,15 @@ setDoc,
 query
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* =========================
+BANNER IMPORTS (ADD HERE)
+========================= */
+
 import {
 ref,
 uploadBytes,
 getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 
 /* =========================
 ADMIN PROTECTION
@@ -591,15 +594,24 @@ snap.forEach((d) => {
 
       <p>📦 Status: <b>${o.status || "Pending"}</b></p>
 
+      <p>💳 Payment Status: <b>${o.paymentStatus || "-"}</b></p>
+
       <button onclick="updateStatus('${d.id}','Pending')">Pending</button>
       <button onclick="updateStatus('${d.id}','Shipped')">Shipped</button>
       <button onclick="updateStatus('${d.id}','Delivered')">Delivered</button>
+      
+      ${
+o.paymentStatus === "Refund Pending"
+?
+`<button onclick="refundCompleted('${d.id}')">
+Refund Completed
+</button>`
+:
+""
+}
+
       <button onclick="printInvoice('${d.id}')">
 Print Invoice
-</button>
-
-<button onclick="downloadInvoice('${d.id}')">
-Download PDF
 </button>
 
 <button onclick="sendWhatsapp('${d.id}')">
@@ -694,6 +706,39 @@ window.updateStatus = async function(id, status) {
 
 };
 
+/* =========================
+ REFUND STATUS
+========================= */
+
+window.refundCompleted = async function(id){
+
+const ok = confirm("Refund Completed?");
+
+if(!ok) return;
+
+try{
+
+await updateDoc(
+doc(db,"orders",id),
+{
+paymentStatus:"Refund Completed"
+}
+);
+
+alert("✅ Refund Completed");
+
+loadOrders();
+
+}catch(error){
+
+console.log(error);
+
+alert(error.message);
+
+}
+
+};
+
 
 /* =========================
 DELETE ORDER
@@ -725,6 +770,8 @@ START
 ========================= */
 
 window.addEventListener("DOMContentLoaded", async () => {
+
+  await loadBanners();
 
   await loadProducts();
 
@@ -985,7 +1032,7 @@ font-size:14px;
 
 <div class="header">
 
-<h1>ALIZAFASHION</h1>
+<h1>AURAWEAVES</h1>
 
 <p>Premium Ethnic Wear Collection</p>
 
@@ -1061,7 +1108,7 @@ _____________________
 
 <b style="font-size:28px;color:#b8860b;font-family:cursive;">
 
-Aliza
+Aura
 
 </b>
 
@@ -1079,7 +1126,7 @@ Authorized Signature
 
 <p>
 
-Thank you for choosing <b>ALIZAFASHION</b>.
+Thank you for choosing <b>AURAWEAVES</b>.
 
 </p>
 
@@ -1116,226 +1163,6 @@ w.close();
 
 };
 
-
-window.downloadInvoice = async function(id){
-
-const o = await getOrderData(id);
-
-const { jsPDF } = window.jspdf;
-
-const pdf = new jsPDF("p","mm","a4");
-
-const headerImg = new Image();
-
-headerImg.src = "./images/invoice-header.jpg";
-
-await new Promise((resolve,reject)=>{
-
-headerImg.onload = resolve;
-
-headerImg.onerror = reject;
-
-});
-
-pdf.addImage(
-    headerImg,
-    "JPEG",
-    0,
-    0,
-    210,
-    45
-);
-
-pdf.setTextColor(0);
-pdf.setFont("helvetica","bold");
-
-pdf.text("Invoice No :",15,58);
-pdf.text("Order Date :",120,58);
-
-pdf.setFont("helvetica","normal");
-
-pdf.text(o.invoiceNo || "-",45,58);
-pdf.text(o.orderDate || "-",155,58);
-
-pdf.setFont("helvetica","bold");
-pdf.text("Customer :",15,58);
-
-pdf.setFont("helvetica","normal");
-pdf.text(o.customerName || "-",45,58);
-
-pdf.setFont("helvetica","bold");
-pdf.text("Phone :",15,66);
-
-pdf.setFont("helvetica","normal");
-pdf.text(o.customerPhone || "-",45,66);
-
-pdf.setFont("helvetica","bold");
-pdf.text("Order No :",120,58);
-
-pdf.setFont("helvetica","normal");
-pdf.text(o.orderNumber || "-",155,58);
-
-pdf.setFont("helvetica","bold");
-pdf.text("Order Status :",120,66);
-
-pdf.setFont("helvetica","normal");
-pdf.text(o.status || "-",155,66);
-
-pdf.setFont("helvetica","bold");
-pdf.text("Payment :",120,74);
-
-pdf.setFont("helvetica","normal");
-pdf.text(o.paymentStatus || "-",155,74);
-
-pdf.setFont("helvetica","bold");
-pdf.text("Address :",15,74);
-
-pdf.setFont("helvetica","normal");
-
-pdf.text(
-pdf.splitTextToSize(o.customerAddress || "-",140),
-45,
-74
-);
-
-pdf.setFillColor(212,160,74);
-
-pdf.rect(15,92,180,10,"F");
-
-pdf.setTextColor(255);
-
-pdf.setFont("helvetica","bold");
-
-pdf.text("Product",18,99);
-pdf.text("Qty",112,99);
-pdf.text("Price",138,99);
-pdf.text("Total",170,99);
-
-pdf.setTextColor(0);
-
-let y = 110;
-
-pdf.setDrawColor(220);
-
-o.items.forEach(item=>{
-
-pdf.setFont("helvetica","normal");
-
-pdf.text(item.name,18,y);
-
-pdf.text(String(item.qty),112,y);
-
-pdf.text("₹"+item.price,138,y);
-
-pdf.text("₹"+(item.qty*item.price),170,y);
-
-pdf.line(15,y+3,195,y+3);
-
-y += 10;
-
-});
-
-pdf.line(15,y,195,y);
-
-y += 12;
-
-pdf.setFont("helvetica","bold");
-
-pdf.setFontSize(16);
-
-pdf.setTextColor(212,160,74);
-
-pdf.text("Grand Total : ₹"+o.total,125,y);
-
-y += 20;
-
-pdf.setFontSize(12);
-
-pdf.setTextColor(0);
-
-pdf.setFont("helvetica","bold");
-pdf.setFontSize(11);
-
-pdf.text(
-"Cancellation Code : " + (o.cancellationCode || "-"),
-15,
-y
-);
-
-y += 10;
-
-pdf.text("Terms & Conditions",15,y);
-
-y += 8;
-
-pdf.setFont("helvetica","normal");
-
-pdf.text("• Goods once sold are not returnable.",18,y);
-
-y += 6;
-
-pdf.text("• Exchange available as per company policy.",18,y);
-
-y += 6;
-
-pdf.text("• Please keep this invoice safely.",18,y);
-
-y += 25;
-
-pdf.setFont("courier","italic");
-
-pdf.setFontSize(18);
-
-pdf.setTextColor(212,160,74);
-
-pdf.text("Aliza",155,y);
-
-pdf.setFont("helvetica","normal");
-
-pdf.setTextColor(0);
-
-pdf.setFontSize(10);
-
-pdf.text("Authorized Signature",145,y+8);
-
-pdf.setFillColor(212,160,74);pdf.setFont("helvetica","normal");
-pdf.setFontSize(10);
-pdf.setTextColor(80);
-
-pdf.text(
-"Customer Care : +91 6351576843",
-15,
-268
-);
-
-pdf.text(
-"www.alizafashion.in",
-145,
-268
-);
-
-
-
-pdf.rect(15,275,180,15,"F");
-
-pdf.setTextColor(255);
-
-pdf.setFontSize(12);
-
-pdf.text("❤️ THANK YOU FOR SHOPPING WITH ALIZAFASHION ❤️",105,284,{align:"center"});
-
-pdf.save((o.invoiceNo || "Invoice")+".pdf");
-
-};
-
-async function getOrderData(id){
-
-const snap = await getDoc(doc(db,"orders",id));
-
-return snap.data();
-
-}
-
 window.sendWhatsapp = async function(id){
 
 const snap = await getDoc(doc(db,"orders",id));
@@ -1343,7 +1170,7 @@ const snap = await getDoc(doc(db,"orders",id));
 const o = snap.data();
 
 const msg =
-`🛍️ ALIZAFASHION
+`🛍️ AURAWEAVES
 
 Invoice : ${o.invoiceNo}
 
@@ -1600,7 +1427,124 @@ analyticsBox.innerHTML = `
 
 }
 
+/* =========================
+BANNER SYSTEM
+========================= */
+
+async function addBanner(){
+
+const title =
+document.getElementById("bannerTitle").value;
+
+const file =
+document.getElementById("bannerImage").files[0];
+
+const link =
+document.getElementById("bannerLink").value;
+
+if(!file){
+alert("Select image");
+return;
+}
+
+const storageRef =
+ref(storage, "banners/" + Date.now() + "_" + file.name);
+
+await uploadBytes(storageRef, file);
+
+const url =
+await getDownloadURL(storageRef);
+
+await addDoc(collection(db,"banners"),{
+
+title,
+image:url,
+link,
+active:true,
+createdAt:serverTimestamp()
+
+});
+
+alert("Banner Added ✅");
+
+loadBanners();
+
+}
+
+/* ========================= */
+
+async function loadBanners(){
+
+const box =
+document.getElementById("banners");
+
+if(!box) return;
+
+const snap =
+await getDocs(collection(db,"banners"));
+
+box.innerHTML = "";
+
+snap.forEach(d=>{
+
+const b = d.data();
+
+box.innerHTML += `
+<div style="background:#222;padding:15px;margin-top:10px;border-radius:8px;">
+
+<img src="${b.image}" width="200"><br><br>
+
+<b>${b.title || ""}</b><br>
+
+<a href="${b.link || '#'}" target="_blank">Open</a><br><br>
+
+<button onclick="toggleBanner('${d.id}',${b.active})">
+${b.active ? "Deactivate":"Activate"}
+</button>
+
+<button onclick="deleteBanner('${d.id}')">
+Delete
+</button>
+
+</div>
+`;
+
+});
+
+}
+
+/* ========================= */
+
+async function deleteBanner(id){
+
+await deleteDoc(doc(db,"banners",id));
+
+loadBanners();
+
+}
+
+/* ========================= */
+
+async function toggleBanner(id,current){
+
+await updateDoc(doc(db,"banners",id),{
+
+active:!current
+
+});
+
+loadBanners();
+
+}
+
+window.addBanner = addBanner;
+window.loadBanners = loadBanners;
+window.deleteBanner = deleteBanner;
+window.toggleBanner = toggleBanner;
+
 export {
   addProduct,
-  logout
+  logout,
+  addBanner,
+  loadBanners
 };

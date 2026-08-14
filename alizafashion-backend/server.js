@@ -54,7 +54,7 @@ const razorpay = new Razorpay({
 });
 
 app.get("/", (req, res) => {
-  res.send("ALIZA BACKEND RUNNING 🚀");
+  res.send("AURA BACKEND RUNNING 🚀");
 });
 
 app.get("/health", (req, res) => {
@@ -614,7 +614,7 @@ await firestore.runTransaction(async (t) => {
 SAVE ORDER
 ========================= */
 
-    const orderNumber = "ALZ" + Date.now();
+    const orderNumber = "AURA" + Date.now();
 
     const cancellationCode =
 crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -808,7 +808,7 @@ SAVE ORDER
 ========================= */
 
 const orderNumber =
-"ALZ" + Date.now();
+"AURA" + Date.now();
 
 const cancellationCode =
 crypto.randomBytes(4)
