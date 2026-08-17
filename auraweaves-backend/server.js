@@ -37,13 +37,12 @@ const orderLimiter = rateLimit({
 const app = express();
 
 app.use(cors({
-origin:[
-"https://alizafashion.in",
-"https://www.alizafashion.in",
-"https://alizafashion-40758.web.app"
-],
-methods:["GET","POST","OPTIONS"],
-allowedHeaders:["Content-Type"]
+  origin: [
+    "https://auraweaves.co",
+    "https://www.auraweaves.co"
+  ],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
 }));
 
 app.use(express.json());
