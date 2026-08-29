@@ -2,7 +2,10 @@ import {
 db,
 storage,
 logout,
-protectAdmin
+protectAdmin,
+ref,
+uploadBytes,
+getDownloadURL
 } from "./firebase.js";
 
 import {
@@ -17,16 +20,6 @@ updateDoc,
 setDoc,
 query
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-/* =========================
-BANNER IMPORTS (ADD HERE)
-========================= */
-
-import {
-ref,
-uploadBytes,
-getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 /* =========================
 ADMIN PROTECTION
@@ -1428,50 +1421,50 @@ analyticsBox.innerHTML = `
 }
 
 /* =========================
-BANNER SYSTEM
-========================= */
+ BANNER SYSTEM — TEXT ONLY
+ ========================= */
 
 async function addBanner(){
 
 const title =
-document.getElementById("bannerTitle").value;
+document.getElementById("bannerTitle").value.trim();
 
-const file =
-document.getElementById("bannerImage").files[0];
+const linkElement =
+document.getElementById("bannerLink");
 
 const link =
-document.getElementById("bannerLink").value;
+linkElement ? linkElement.value.trim() : "";
 
-if(!file){
-alert("Select image");
+const active =
+document.getElementById("bannerActive").checked;
+
+if(!title){
+alert("Enter offer text");
 return;
 }
 
-const storageRef =
-ref(storage, "banners/" + Date.now() + "_" + file.name);
-
-await uploadBytes(storageRef, file);
-
-const url =
-await getDownloadURL(storageRef);
-
-await addDoc(collection(db,"banners"),{
-
+await addDoc(
+collection(db,"banners"),
+{
 title,
-image:url,
 link,
-active:true,
+active,
 createdAt:serverTimestamp()
+}
+);
 
-});
+document.getElementById("bannerTitle").value = "";
 
-alert("Banner Added ✅");
+alert("Offer Added ✅");
 
 loadBanners();
 
 }
 
-/* ========================= */
+
+/* =========================
+ LOAD BANNERS
+ ========================= */
 
 async function loadBanners(){
 
@@ -1481,61 +1474,111 @@ document.getElementById("banners");
 if(!box) return;
 
 const snap =
-await getDocs(collection(db,"banners"));
+await getDocs(
+collection(db,"banners")
+);
 
 box.innerHTML = "";
+
+if(snap.empty){
+
+box.innerHTML = "<p>No Offers Found</p>";
+
+return;
+
+}
 
 snap.forEach(d=>{
 
 const b = d.data();
 
 box.innerHTML += `
-<div style="background:#222;padding:15px;margin-top:10px;border-radius:8px;">
 
-<img src="${b.image}" width="200"><br><br>
+<div style="
+background:#222;
+padding:15px;
+margin-top:10px;
+border-radius:8px;
+">
 
-<b>${b.title || ""}</b><br>
+<h3>${b.title || ""}</h3>
 
-<a href="${b.link || '#'}" target="_blank">Open</a><br><br>
+<p>
+Status:
+<b>
+${b.active ? "✅ Active" : "❌ Inactive"}
+</b>
+</p>
 
-<button onclick="toggleBanner('${d.id}',${b.active})">
-${b.active ? "Deactivate":"Activate"}
+${
+b.link
+?
+`<a href="${b.link}" target="_blank">Open Link</a>`
+:
+""
+}
+
+<br><br>
+
+<button
+onclick="toggleBanner('${d.id}',${b.active})"
+>
+${b.active ? "Deactivate" : "Activate"}
 </button>
 
-<button onclick="deleteBanner('${d.id}')">
+<button
+onclick="deleteBanner('${d.id}')"
+>
 Delete
 </button>
 
 </div>
+
 `;
 
 });
 
 }
 
-/* ========================= */
+
+/* =========================
+ DELETE BANNER
+ ========================= */
 
 async function deleteBanner(id){
 
-await deleteDoc(doc(db,"banners",id));
+if(!confirm("Delete Offer?")) return;
+
+await deleteDoc(
+doc(db,"banners",id)
+);
 
 loadBanners();
 
 }
 
-/* ========================= */
+
+/* =========================
+ TOGGLE BANNER
+ ========================= */
 
 async function toggleBanner(id,current){
 
-await updateDoc(doc(db,"banners",id),{
-
+await updateDoc(
+doc(db,"banners",id),
+{
 active:!current
-
-});
+}
+);
 
 loadBanners();
 
 }
+
+
+/* =========================
+ EXPORTS
+ ========================= */
 
 window.addBanner = addBanner;
 window.loadBanners = loadBanners;

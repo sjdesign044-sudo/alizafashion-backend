@@ -143,41 +143,48 @@ fetch(
 "https://alizafashion-backend.onrender.com/health"
 ).catch(()=>{});
 
-const product =
-JSON.parse(
-localStorage.getItem("checkoutProduct")
-);
+const checkoutCart =
+JSON.parse(localStorage.getItem("checkoutCart"));
 
-if(!product){
+if(!checkoutCart || !checkoutCart.length){
 
 alert("No Product Found");
 
-window.location.href =
-"index.html";
+window.location.href = "index.html";
 
-throw new Error(
-"Checkout Product Missing"
-);
+throw new Error("Checkout Cart Missing");
 
 }
 
-if(product){
+let cartTotal = 0;
 
-const total =
-Number(product.price) *
-Number(product.qty);
+checkoutCart.forEach(item => {
 
-document.getElementById("productInfo").innerHTML = `
-<img src="${product.image}">
-<h3>${product.name}</h3>
-<p>Qty: ${product.qty}</p>
-<p>Total: ₹${total}</p>
-`;
+cartTotal +=
+Number(item.price) *
+Number(item.qty);
+
+});
+
+document.getElementById("productInfo").innerHTML =
+checkoutCart.map(item => `
+
+<div style="margin-bottom:15px;">
+
+<img src="${item.image}">
+
+<h3>${item.name}</h3>
+
+<p>Qty: ${item.qty}</p>
+
+<p>₹${Number(item.price) * Number(item.qty)}</p>
+
+</div>
+
+`).join("");
 
 document.getElementById("finalAmount").innerText =
-"Total Payable: ₹" + total;
-
-}
+"Total Payable: ₹" + cartTotal;
 
 let orderProcessing = false;
 
@@ -216,9 +223,11 @@ return;
 
 }
 
-const total =
-Number(product.price) *
-Number(product.qty);
+const total = checkoutCart.reduce(
+  (sum,item) =>
+    sum + Number(item.price) * Number(item.qty),
+  0
+);
 
 try{
 
@@ -287,9 +296,11 @@ document.querySelectorAll(
 
 radio.addEventListener("change", () => {
 
-const total =
-Number(product.price) *
-Number(product.qty);
+const total = checkoutCart.reduce(
+  (sum,item) =>
+    sum + Number(item.price) * Number(item.qty),
+  0
+);
 
 if(radio.value === "cod"){
 
@@ -410,8 +421,7 @@ customerPhone:phone,
 customerAddress:
 `${address}, ${city}, ${state}, ${pincode}`,
 
-productId:product.id,
-qty:product.qty
+items: checkoutCart
 
 })
 }
@@ -465,9 +475,7 @@ headers:{
 },
 body: JSON.stringify({
 
-productId: product.id,
-
-qty: product.qty,
+items: checkoutCart,
 
 couponCode:
 document.getElementById("couponCode")
@@ -488,8 +496,8 @@ key:"rzp_live_SxDAPoGKvcv1pm",
 amount:order.amount,
 currency:"INR",
 name:"AURAWEAVES",
-description:product.name,
-image:product.image,
+description:"AURAWEAVES Order",
+image:checkoutCart[0].image,
 order_id:order.id,
 prefill:{
 name:name,
@@ -517,7 +525,7 @@ customerName: name,
 customerPhone: phone,
 customerAddress: `${address}, ${city}, ${state}, ${pincode}`,
 
-product: product,
+items: checkoutCart,
 
 couponCode:
 document

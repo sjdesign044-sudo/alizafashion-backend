@@ -94,7 +94,18 @@ CHECKOUT OPEN
 ========================= */
 
 window.openCheckout = () => {
-  document.getElementById("checkoutBox").style.display = "block";
+
+  if(!cart.length){
+    alert("Cart is empty");
+    return;
+  }
+
+  localStorage.setItem(
+  "checkoutCart",
+  JSON.stringify(cart)
+);
+
+window.location.href = "checkout.html";
 };
 
 /* =========================
@@ -121,6 +132,10 @@ window.placeOrder = async () => {
   try{
 
     const orderNumber = "AURA" + Date.now();
+    const cancellationCode =
+  "CANCEL" + Math.floor(100000 + Math.random() * 900000);
+  localStorage.setItem("lastOrderNumber", orderNumber);
+localStorage.setItem("lastCancellationCode", cancellationCode);
 
     await addDoc(collection(db,"orders"),{
       customerName: name,

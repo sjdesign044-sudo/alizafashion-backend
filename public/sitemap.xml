@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://www.auraweaves.co/</loc>
+  </url>
+
+  <url>
+    <loc>https://www.auraweaves.co/category.html</loc>
+  </url>
+
+  <url>
+    <loc>https://www.auraweaves.co/product.html</loc>
+  </url>
+
+  <url>
+    <loc>https://www.auraweaves.co/checkout.html</loc>
+  </url>
+
+  <url>
+    <loc>https://www.auraweaves.co/track-order.html</loc>
+  </url>
+
+  <url>
+    <loc>https://www.auraweaves.co/your-orders.html</loc>
+  </url>
+
+  <url>
+    <loc>https://www.auraweaves.co/shipping-policy.html</loc>
+  </url>
+
+  <url>
+    <loc>https://www.auraweaves.co/return-policy.html</loc>
+  </url>
+
+</urlset>

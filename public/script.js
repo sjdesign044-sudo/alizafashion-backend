@@ -1,13 +1,10 @@
 import { db } from "./firebase.js";
 
 import {
-collection,
-getDocs,
-addDoc,
-serverTimestamp,
-deleteDoc,
-updateDoc,
-doc
+  collection,
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 console.log("AURAWEAVES FINAL");
@@ -150,7 +147,6 @@ localStorage.getItem("wishlist")
 ) || [];
 
 let appliedCoupon = "";
-let discountAmount = 0;
 
 /* =========================
 ICONS
@@ -192,6 +188,23 @@ cartSidebar.innerHTML = `
 `;
 
 document.body.appendChild(cartSidebar);
+
+/* =========================
+CLOSE CART
+========================= */
+
+const closeCart =
+cartSidebar.querySelector(".close-cart");
+
+if(closeCart){
+
+closeCart.onclick = () => {
+
+cartSidebar.classList.remove("active");
+
+};
+
+}
 
 /* =========================
 TOAST
@@ -307,6 +320,16 @@ cart.find((item) => item.id === product.id);
 
 if(existing){
 
+existing.stock = product.stock;
+
+if(existing.qty >= Number(product.stock || 0)){
+
+showToast("Maximum Stock Available ❌");
+
+return;
+
+}
+
 existing.qty += 1;
 
 }else{
@@ -316,6 +339,7 @@ cart.push({
   name: product.name,
   price: product.price,
   image: product.image,
+  stock: product.stock,
   qty: 1
 });
 
@@ -554,40 +578,18 @@ Remove
 
 });
 
-const finalTotal = total - discountAmount;
+const finalTotal = total;
 
 cartContent.innerHTML += `
 
 <div class="cart-total">
-
-<div class="coupon-box">
-
-<input
-type="text"
-id="couponCode"
-placeholder="Enter Coupon"
->
-
-<button onclick="applyCoupon(${total})">
-Apply
-</button>
-
-</div>
-
-${discountAmount > 0 ? `
-<div class="discount-row">
-Discount: ₹${discountAmount}
-</div>
-` : ""}
 
 <h3 class="final-total">
 Total: ₹${finalTotal}
 </h3>
 
 <button class="checkout-btn">
-
 Proceed To Checkout
-
 </button>
 
 </div>
@@ -605,7 +607,7 @@ if(cart.length === 0) return;
 
 localStorage.setItem(
 "checkoutProduct",
-JSON.stringify(cart[0])
+JSON.stringify(cart)
 );
 
 window.location.href =
@@ -621,10 +623,23 @@ window.location.href =
 QTY FUNCTIONS
 ========================= */
 
-window.increaseQty =
-(index) => {
+window.increaseQty = (index) => {
 
-cart[index].qty += 1;
+const item = cart[index];
+
+if(!item) return;
+
+const stock = Number(item.stock || 0);
+
+if(stock > 0 && item.qty >= stock){
+
+showToast("Maximum Stock Available ❌");
+
+return;
+
+}
+
+item.qty += 1;
 
 saveCart();
 
@@ -646,40 +661,6 @@ cart.splice(index,1);
 }
 
 saveCart();
-
-renderCart();
-
-};
-
-window.applyCoupon = (total) => {
-
-const code =
-document.getElementById("couponCode")
-.value
-.trim()
-.toUpperCase();
-
-if(code === "AURA10"){
-
-discountAmount =
-Math.floor(total * 0.10);
-
-appliedCoupon = code;
-
-showToast(
-"10% Discount Applied ✅"
-);
-
-}
-else{
-
-discountAmount = 0;
-
-showToast(
-"Invalid Coupon ❌"
-);
-
-}
 
 renderCart();
 
@@ -714,15 +695,30 @@ renderCart();
 
 }
 
+/* =========================
+WISHLIST / CLOSE
+========================= */
+
+const closeWishlist =
+document.querySelector(".close-wishlist");
+
 if(wishlistBtn && wishlistSidebar){
 
 wishlistBtn.onclick = () => {
 
-wishlistSidebar.classList.toggle(
-"active"
-);
+wishlistSidebar.classList.add("active");
 
 renderWishlist();
+
+};
+
+}
+
+if(closeWishlist && wishlistSidebar){
+
+closeWishlist.onclick = () => {
+
+wishlistSidebar.classList.remove("active");
 
 };
 
@@ -806,6 +802,119 @@ toggleWishlist(product);
 );
 
 /* =========================
+CONTINUOUS OFFER BANNER
+========================= */
+
+async function loadBanners(){
+
+    const slider =
+        document.getElementById("offerSlider");
+
+    const slides =
+        document.getElementById("offerSlides");
+
+    if(!slider || !slides) return;
+
+    try{
+
+        const bannerQuery = query(
+            collection(db, "banners"),
+            where("active", "==", true)
+        );
+
+        const snap =
+            await getDocs(bannerQuery);
+
+        let title = "";
+        let link = "#";
+
+        /*
+        FIRST ACTIVE BANNER ONLY
+        */
+
+        snap.forEach((bannerDoc) => {
+
+            if(title) return;
+
+            const data = bannerDoc.data();
+
+            title =
+                data.title ||
+                "SPECIAL OFFER";
+
+            link =
+                data.link ||
+                "#";
+
+        });
+
+        /*
+        NO OFFER
+        */
+
+        if(!title){
+
+            slider.style.display = "none";
+            slides.innerHTML = "";
+
+            return;
+
+        }
+
+        slider.style.display = "flex";
+
+        /*
+        TWO FULL-SCREEN SLIDES
+        */
+
+        slides.innerHTML = `
+
+            <a
+                href="${link}"
+                class="offer-slide"
+            >
+
+                <div class="offer-content">
+
+                    <h2>
+                        ${title}
+                    </h2>
+
+                </div>
+
+            </a>
+
+            <a
+                href="${link}"
+                class="offer-slide"
+            >
+
+                <div class="offer-content">
+
+                    <h2>
+                        ${title}
+                    </h2>
+
+                </div>
+
+            </a>
+
+        `;
+
+    }catch(error){
+
+        console.error(
+            "OFFER BANNER ERROR:",
+            error
+        );
+
+    }
+
+}
+
+loadBanners();
+
+/* =========================
 LOAD PRODUCTS
 ========================= */
 
@@ -854,11 +963,15 @@ snap.forEach((docItem) => {
 const p =
 docItem.data();
 
- const product = {
+ const productImage =
+  p.images?.[0] || p.image || "";
+
+const product = {
   id: docItem.id,
   name: p.name,
   price: p.price,
-  image: p.image
+  image: productImage,
+  stock: Number(p.stock || 0)
 };
 
 const isWishlisted =

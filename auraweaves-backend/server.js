@@ -74,103 +74,101 @@ async (req, res) => {
     console.log("CREATE ORDER HIT");
 
     const {
-
-productId,
-
-qty,
-
-couponCode
-
+  items,
+  couponCode
 } = req.body;
 
-const productDoc = await firestore
-.collection("products")
-.doc(productId)
-.get();
-
-if (!productDoc.exists) {
-
-return res.status(400).json({
-
-error:"Product Not Found"
-
-});
-
-}
-
-const product = productDoc.data();
-
-if (
-  !Number.isInteger(Number(qty)) ||
-  Number(qty) < 1 ||
-  Number(qty) > 10
-) {
-
+if (!Array.isArray(items) || !items.length) {
   return res.status(400).json({
-    error: "Invalid Quantity"
+    error: "Cart is empty"
   });
-
-}
-
-if (product.active === false) {
-
-  return res.status(400).json({
-    error: "Product unavailable"
-  });
-
-}
-
-if(Number(product.stock) < Number(qty)){
-
-return res.status(400).json({
-error:"Out of Stock"
-});
-
 }
 
 let finalDiscount = 0;
+let subtotal = 0;
+const verifiedItems = [];
+
+for (const item of items) {
+
+  const productDoc = await firestore
+    .collection("products")
+    .doc(item.id)
+    .get();
+
+  if (!productDoc.exists) {
+    return res.status(400).json({
+      error: "Product Not Found"
+    });
+  }
+
+  const product = productDoc.data();
+  const qty = Number(item.qty);
+
+  if (
+    !Number.isInteger(qty) ||
+    qty < 1 ||
+    qty > 10
+  ) {
+    return res.status(400).json({
+      error: "Invalid Quantity"
+    });
+  }
+
+  if (product.active === false) {
+    return res.status(400).json({
+      error: "Product unavailable"
+    });
+  }
+
+  if (Number(product.stock) < qty) {
+    return res.status(400).json({
+      error: `${product.name} is Out of Stock`
+    });
+  }
+
+  subtotal += Number(product.price) * qty;
+
+  verifiedItems.push({
+    id: item.id,
+    name: product.name,
+    image: product.image || product.images?.[0] || "",
+    price: Number(product.price),
+    qty: qty
+  });
+}
 
 if (couponCode) {
 
-const couponDoc = await firestore
-.collection("coupons")
-.doc(couponCode)
-.get();
+  const couponDoc = await firestore
+    .collection("coupons")
+    .doc(couponCode)
+    .get();
 
-if (couponDoc.exists) {
+  if (couponDoc.exists) {
 
-const coupon = couponDoc.data();
+    const coupon = couponDoc.data();
 
-if (
-coupon.expiry &&
-coupon.expiry.toDate() <= new Date()
-){
-return res.status(400).json({
-error:"Coupon Expired"
-});
+    if (
+      coupon.expiry &&
+      coupon.expiry.toDate() <= new Date()
+    ) {
+      return res.status(400).json({
+        error: "Coupon Expired"
+      });
+    }
+
+    if (
+      coupon.active &&
+      Number(coupon.discount) > 0
+    ) {
+      finalDiscount = Math.floor(
+        subtotal * (Number(coupon.discount) / 100)
+      );
+    }
+  }
 }
 
-if (
-coupon.active &&
-Number(coupon.discount) > 0
-){
-
-finalDiscount = Math.floor(
-Number(product.price) *
-Number(qty) *
-(coupon.discount / 100)
-);
-
-}
-
-}
-
-}
-
-const amount =
-(Number(product.price) * Number(qty))
--
-finalDiscount;
+const amount = subtotal - finalDiscount;
 
 if (amount <= 0) {
   return res.status(400).json({
@@ -331,7 +329,7 @@ app.post(
   customerName,
   customerPhone,
   customerAddress,
-  product,
+  items,
   couponCode
 } = req.body;
 
@@ -455,64 +453,70 @@ if (payment.order_id !== razorpay_order_id) {
 }
 
 /* =========================
-VERIFY PRODUCT
+VERIFY PRODUCTS
 ========================= */
 
-if (!product || !product.id || !product.qty) {
+if (!Array.isArray(items) || !items.length) {
   return res.status(400).json({
     success: false,
-    message: "Invalid Product Data"
+    message: "Invalid Items"
   });
 }
 
-const productId = product.id;
-const qty = product.qty;
+let subtotal = 0;
+const verifiedItems = [];
 
-const productDoc = await firestore
-  .collection("products")
-  .doc(productId)
-  .get();
+for (const item of items) {
 
-if (!productDoc.exists) {
+  const productDoc = await firestore
+    .collection("products")
+    .doc(item.id)
+    .get();
 
-  return res.status(400).json({
-    success: false,
-    message: "Product not found"
+  if (!productDoc.exists) {
+    return res.status(400).json({
+      success: false,
+      message: "Product not found"
+    });
+  }
+
+  const realProduct = productDoc.data();
+  const qty = Number(item.qty);
+
+  if (
+    !Number.isInteger(qty) ||
+    qty < 1 ||
+    qty > 10
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Quantity"
+    });
+  }
+
+  if (realProduct.active === false) {
+    return res.status(400).json({
+      success: false,
+      message: "Product unavailable"
+    });
+  }
+
+  if (Number(realProduct.stock) < qty) {
+    return res.status(400).json({
+      success: false,
+      message: `${realProduct.name} is Out of Stock`
+    });
+  }
+
+  subtotal += Number(realProduct.price) * qty;
+
+  verifiedItems.push({
+    id: item.id,
+    name: realProduct.name,
+    image: realProduct.image || realProduct.images?.[0] || "",
+    price: Number(realProduct.price),
+    qty
   });
-
-}
-
-const realProduct = productDoc.data();
-
-if (
-  !Number.isInteger(Number(qty)) ||
-  Number(qty) < 1 ||
-  Number(qty) > 10
-) {
-
-  return res.status(400).json({
-    success: false,
-    message: "Invalid Quantity"
-  });
-
-}
-
-if (realProduct.active === false) {
-
-  return res.status(400).json({
-    success: false,
-    message: "Product unavailable"
-  });
-
-}
-
-if (Number(realProduct.stock) < Number(qty)) {
-
-  return res.status(400).json({
-    success: false,
-    message: "Out of Stock"
-  });
-
 }
 
 /* =========================
@@ -523,40 +527,34 @@ let finalDiscount = 0;
 
 if (couponCode) {
 
-const couponDoc = await firestore
-.collection("coupons")
-.doc(couponCode)
-.get();
+  const couponDoc = await firestore
+    .collection("coupons")
+    .doc(couponCode)
+    .get();
 
-if (couponDoc.exists) {
+  if (couponDoc.exists) {
 
-const coupon = couponDoc.data();
+    const coupon = couponDoc.data();
 
-if (
-coupon.expiry &&
-coupon.expiry.toDate() <= new Date()
-){
-return res.status(400).json({
-success:false,
-message:"Coupon Expired"
-});
-}
+    if (
+      coupon.expiry &&
+      coupon.expiry.toDate() <= new Date()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Coupon Expired"
+      });
+    }
 
-if (
-coupon.active &&
-Number(coupon.discount) > 0
-){
-
-finalDiscount = Math.floor(
-Number(realProduct.price) *
-Number(product.qty) *
-(coupon.discount / 100)
-);
-
-}
-
-}
-
+    if (
+      coupon.active &&
+      Number(coupon.discount) > 0
+    ) {
+      finalDiscount = Math.floor(
+        subtotal * (Number(coupon.discount) / 100)
+      );
+    }
+  }
 }
 
 /* =========================
@@ -564,13 +562,7 @@ VERIFY PAYMENT AMOUNT
 ========================= */
 
 const expectedAmount =
-
-(Number(realProduct.price) *
-Number(product.qty))
-
--
-
-finalDiscount;
+  subtotal - finalDiscount;
 
 if (payment.amount !== expectedAmount * 100) {
 
@@ -590,22 +582,30 @@ UPDATE PRODUCT STOCK
 
 await firestore.runTransaction(async (t) => {
 
-  const ref = firestore.collection("products").doc(productId);
-  const docSnap = await t.get(ref);
+  for (const item of verifiedItems) {
 
-  if (!docSnap.exists) {
-    throw new Error("Product not found");
+    const ref = firestore
+      .collection("products")
+      .doc(item.id);
+
+    const docSnap = await t.get(ref);
+
+    if (!docSnap.exists) {
+      throw new Error("Product not found");
+    }
+
+    const data = docSnap.data();
+
+    if (Number(data.stock) < Number(item.qty)) {
+      throw new Error(`${data.name} is Out of Stock`);
+    }
+
+    t.update(ref, {
+      stock: admin.firestore.FieldValue.increment(
+        -Number(item.qty)
+      )
+    });
   }
-
-  const data = docSnap.data();
-
-  if (Number(data.stock) < Number(qty)) {
-    throw new Error("Out of Stock");
-  }
-
-  t.update(ref, {
-    stock: admin.firestore.FieldValue.increment(-Number(qty))
-  });
 
 });
 
@@ -628,19 +628,7 @@ crypto.randomBytes(4).toString("hex").toUpperCase();
   customerPhone,
   customerAddress,
 
-  items: [{
-
-id: product.id,
-
-name: realProduct.name,
-
-image: realProduct.image,
-
-price: realProduct.price,
-
-qty: product.qty
-
-}],
+  items: verifiedItems,
 
   total: expectedAmount,
 
@@ -693,8 +681,7 @@ const {
 customerName,
 customerPhone,
 customerAddress,
-productId,
-qty
+items
 } = req.body;
 
 if(
@@ -715,24 +702,25 @@ message:"Invalid Phone Number"
 });
 }
 
-const recentOrders = await firestore
-.collection("orders")
-.where("customerPhone","==",customerPhone)
-.where("paymentMethod","==","COD")
-.get();
-
-if (recentOrders.size >= 5) {
-
+if (!Array.isArray(items) || !items.length) {
 return res.status(400).json({
 success:false,
-message:"Too many COD orders"
+message:"Cart is empty"
 });
-
 }
+
+const verifiedItems = [];
+let total = 0;
+
+/* =========================
+VERIFY PRODUCTS
+========================= */
+
+for (const item of items) {
 
 const productDoc = await firestore
 .collection("products")
-.doc(productId)
+.doc(item.id)
 .get();
 
 if(!productDoc.exists){
@@ -743,13 +731,13 @@ message:"Product not found"
 }
 
 const product = productDoc.data();
+const qty = Number(item.qty);
 
 if (
-!Number.isInteger(Number(qty)) ||
-Number(qty) < 1 ||
-Number(qty) > 10
+!Number.isInteger(qty) ||
+qty < 1 ||
+qty > 10
 ){
-
 return res.status(400).json({
 success:false,
 message:"Invalid Quantity"
@@ -762,11 +750,22 @@ success:false,
 message:"Product unavailable"
 });
 }
-if(Number(product.stock) < Number(qty)){
 
+if(Number(product.stock) < qty){
 return res.status(400).json({
 success:false,
-message:"Out of Stock"
+message:`${product.name} is Out of Stock`
+});
+}
+
+total += Number(product.price) * qty;
+
+verifiedItems.push({
+id:item.id,
+name:product.name,
+image:product.image || product.images?.[0] || "",
+price:Number(product.price),
+qty:qty
 });
 
 }
@@ -776,30 +775,33 @@ UPDATE PRODUCT STOCK
 ========================= */
 
 await firestore.runTransaction(async (t) => {
-  const ref = firestore.collection("products").doc(productId);
-  const docSnap = await t.get(ref);
 
-  if (!docSnap.exists) {
-    throw new Error("Product not found");
-  }
+for (const item of verifiedItems) {
 
-  const data = docSnap.data();
+const ref = firestore
+.collection("products")
+.doc(item.id);
 
-  if (!data) {
-    throw new Error("Product data missing");
-  }
+const docSnap = await t.get(ref);
 
-  if (data.active === false) {
-    throw new Error("Product unavailable");
-  }
+if (!docSnap.exists) {
+throw new Error("Product not found");
+}
 
-  if (Number(data.stock) < Number(qty)) {
-    throw new Error("Out of Stock");
-  }
+const data = docSnap.data();
 
-  t.update(ref, {
-    stock: admin.firestore.FieldValue.increment(-Number(qty))
-  });
+if (Number(data.stock) < Number(item.qty)) {
+throw new Error(`${data.name} is Out of Stock`);
+}
+
+t.update(ref, {
+stock: admin.firestore.FieldValue.increment(
+-Number(item.qty)
+)
+});
+
+}
+
 });
 
 /* =========================
@@ -827,17 +829,9 @@ customerName,
 customerPhone,
 customerAddress,
 
-items:[{
-id:productId,
-name:product.name,
-image:product.image,
-price:product.price,
-qty:Number(qty)
-}],
+items:verifiedItems,
 
-total:
-Number(product.price) *
-Number(qty),
+total:total,
 
 paymentMethod:"COD",
 
@@ -861,6 +855,8 @@ cancellationCode
 });
 
 }catch(err){
+
+console.log(err);
 
 return res.status(500).json({
 success:false,
