@@ -18,6 +18,242 @@ admin.initializeApp({
 
 const firestore = admin.firestore();
 
+// =========================
+// 🚚 SHIPROCKET
+// =========================
+
+let shiprocketToken = null;
+let shiprocketTokenTime = 0;
+
+async function getShiprocketToken() {
+
+  const now = Date.now();
+
+  // Token 9 days tak reuse
+  if (
+    shiprocketToken &&
+    now - shiprocketTokenTime < 9 * 24 * 60 * 60 * 1000
+  ) {
+    return shiprocketToken;
+  }
+
+  const response = await fetch(
+    "https://apiv2.shiprocket.in/v1/external/auth/login",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: process.env.SHIPROCKET_EMAIL,
+        password: process.env.SHIPROCKET_PASSWORD
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok || !data.token) {
+    console.error("SHIPROCKET LOGIN ERROR:", data);
+
+    throw new Error(
+      "Shiprocket authentication failed"
+    );
+  }
+
+  shiprocketToken = data.token;
+  shiprocketTokenTime = now;
+
+  return shiprocketToken;
+}
+
+
+async function createShiprocketOrder({
+  orderNumber,
+  customerName,
+  customerPhone,
+  customerAddress,
+  customerCity,
+  customerState,
+  customerPincode,
+  items,
+  total,
+  paymentMethod
+}) {
+
+  const token =
+    await getShiprocketToken();
+
+  const nameParts =
+    customerName.trim().split(/\s+/);
+
+  const firstName =
+    nameParts.shift() || "Customer";
+
+  const lastName =
+    nameParts.join(" ") || "Customer";
+
+  const orderItems =
+    items.map(item => ({
+      name: item.name,
+      sku: item.id,
+      units: Number(item.qty),
+      selling_price: Number(item.price),
+      discount: 0,
+      tax: 0,
+      hsn: ""
+    }));
+
+  const quantity =
+    items.reduce(
+      (sum, item) =>
+        sum + Number(item.qty),
+      0
+    );
+
+  const packageWeight =
+    Math.max(
+      0.7 * quantity,
+      0.5
+    );
+
+  const payload = {
+
+    order_id: orderNumber,
+
+    order_date:
+      new Date().toISOString(),
+
+    pickup_location:
+      process.env.SHIPROCKET_PICKUP_LOCATION,
+
+    channel_id:
+      "",
+
+    comment:
+      "AURAWEAVES Website Order",
+
+    billing_customer_name:
+      firstName,
+
+    billing_last_name:
+      lastName,
+
+    billing_address:
+      customerAddress,
+
+    billing_city:
+      customerCity,
+
+    billing_pincode:
+      customerPincode,
+
+    billing_state:
+      customerState,
+
+    billing_country:
+      "India",
+
+    billing_email:
+      process.env.SHIPROCKET_EMAIL,
+
+    billing_phone:
+      customerPhone,
+
+    shipping_is_billing:
+      true,
+
+    shipping_customer_name:
+      firstName,
+
+    shipping_last_name:
+      lastName,
+
+    shipping_address:
+      customerAddress,
+
+    shipping_city:
+      customerCity,
+
+    shipping_pincode:
+      customerPincode,
+
+    shipping_country:
+      "India",
+
+    shipping_state:
+      customerState,
+
+    shipping_email:
+      process.env.SHIPROCKET_EMAIL,
+
+    shipping_phone:
+      customerPhone,
+
+    order_items:
+      orderItems,
+
+    payment_method:
+      paymentMethod === "COD"
+        ? "COD"
+        : "Prepaid",
+
+    sub_total:
+      Number(total),
+
+    length: 30,
+
+    breadth: 25,
+
+    height: 5,
+
+    weight:
+      packageWeight
+
+  };
+
+  const response =
+    await fetch(
+      "https://apiv2.shiprocket.in/v1/external/orders/create/adhoc",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "Authorization":
+            `Bearer ${token}`
+        },
+
+        body:
+          JSON.stringify(payload)
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (!response.ok) {
+
+    console.error(
+      "SHIPROCKET ORDER ERROR:",
+      data
+    );
+
+    throw new Error(
+      "Shiprocket order creation failed"
+    );
+  }
+
+  console.log(
+    "SHIPROCKET ORDER CREATED:",
+    data
+  );
+
+  return data;
+}
+
 const orderLimiter = rateLimit({
 
   windowMs: 15 * 60 * 1000,
@@ -329,6 +565,9 @@ app.post(
   customerName,
   customerPhone,
   customerAddress,
+  customerCity,
+  customerState,
+  customerPincode,
   items,
   couponCode
 } = req.body;
@@ -618,31 +857,49 @@ SAVE ORDER
     const cancellationCode =
 crypto.randomBytes(4).toString("hex").toUpperCase();
 
-    await firestore.collection("orders").add({
+const savedOrder =
+await firestore
+.collection("orders")
+.add({
 
-  invoiceNo: "INV" + Date.now(),
+invoiceNo:
+"INV" + Date.now(),
 
-  orderDate: new Date().toLocaleDateString("en-IN"),
+orderDate:
+new Date().toLocaleDateString("en-IN"),
 
-  customerName,
-  customerPhone,
-  customerAddress,
+customerName,
 
-  items: verifiedItems,
+customerPhone,
 
-  total: expectedAmount,
+customerAddress,
 
-  paymentMethod: "ONLINE",
+customerCity,
 
-  paymentStatus: "Paid",
+customerState,
 
-  status: "Confirmed",
+customerPincode,
 
-  razorpay_order_id,
+items:
+verifiedItems,
 
-  razorpay_payment_id,
+total:
+expectedAmount,
 
-  orderNumber,
+paymentMethod:
+"ONLINE",
+
+paymentStatus:
+"Paid",
+
+status:
+"Confirmed",
+
+razorpay_order_id,
+
+razorpay_payment_id,
+
+orderNumber,
 
 cancellationCode,
 
@@ -650,6 +907,70 @@ createdAt:
 admin.firestore.FieldValue.serverTimestamp()
 
 });
+
+
+// =========================
+// 🚚 CREATE SHIPROCKET ORDER
+// =========================
+
+try {
+
+  const shiprocketOrder =
+    await createShiprocketOrder({
+
+      orderNumber,
+
+      customerName,
+
+      customerPhone,
+
+      customerAddress,
+
+      customerCity,
+
+      customerState,
+
+      customerPincode,
+
+      items: verifiedItems,
+
+      total: expectedAmount,
+
+      paymentMethod: "ONLINE"
+
+    });
+
+  await savedOrder.update({
+
+    shiprocketOrderId:
+      shiprocketOrder.order_id || null,
+
+    shiprocketShipmentId:
+      shiprocketOrder.shipment_id || null,
+
+    shiprocketStatus:
+      "Created"
+
+  });
+
+} catch (shiprocketError) {
+
+  console.error(
+    "SHIPROCKET ERROR:",
+    shiprocketError
+  );
+
+  await savedOrder.update({
+
+    shiprocketStatus:
+      "Failed",
+
+    shiprocketError:
+      shiprocketError.message
+
+  });
+
+}
 
     return res.json({
       success: true,
@@ -681,6 +1002,9 @@ const {
 customerName,
 customerPhone,
 customerAddress,
+customerCity,
+customerState,
+customerPincode,
 items
 } = req.body;
 
