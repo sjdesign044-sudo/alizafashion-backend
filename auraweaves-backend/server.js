@@ -272,6 +272,8 @@ const orderLimiter = rateLimit({
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(cors({
   origin: [
     "https://auraweaves.co",
@@ -874,11 +876,11 @@ customerPhone,
 
 customerAddress,
 
-customerCity,
+customerCity: customerCity || "",
 
-customerState,
+customerState: customerState || "",
 
-customerPincode,
+customerPincode: customerPincode || "",
 
 items:
 verifiedItems,
@@ -1152,6 +1154,9 @@ new Date().toLocaleDateString("en-IN"),
 customerName,
 customerPhone,
 customerAddress,
+customerCity: customerCity || "",
+customerState: customerState || "",
+customerPincode: customerPincode || "",
 
 items:verifiedItems,
 
