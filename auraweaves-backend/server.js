@@ -566,10 +566,10 @@ app.post(
   customerName,
   customerPhone,
   customerAddress,
-  customerCity,
-  customerState,
-  customerPincode,
-  items,
+  customerCity = "",
+customerState = "",
+customerPincode = "",
+items,
   couponCode
 } = req.body;
 
@@ -875,11 +875,11 @@ customerPhone,
 
 customerAddress,
 
-customerCity: customerCity || "",
+customerCity,
 
-customerState: customerState || "",
+customerState,
 
-customerPincode: customerPincode || "",
+customerPincode,
 
 items:
 verifiedItems,
@@ -1153,9 +1153,6 @@ new Date().toLocaleDateString("en-IN"),
 customerName,
 customerPhone,
 customerAddress,
-customerCity: customerCity || "",
-customerState: customerState || "",
-customerPincode: customerPincode || "",
 
 items:verifiedItems,
 
