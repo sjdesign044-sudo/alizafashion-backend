@@ -555,7 +555,6 @@ reason
 
 app.post(
   "/verify-payment",
-  orderLimiter,
   async (req, res) => {
 
   try {
