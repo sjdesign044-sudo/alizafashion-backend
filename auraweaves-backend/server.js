@@ -84,6 +84,16 @@ async function createShiprocketOrder({
   const token =
     await getShiprocketToken();
 
+    if (
+  !customerCity ||
+  !customerState ||
+  !customerPincode
+) {
+  throw new Error(
+    "Customer city, state and pincode are required for Shiprocket"
+  );
+}
+
   const nameParts =
     customerName.trim().split(/\s+/);
 
@@ -94,15 +104,12 @@ async function createShiprocketOrder({
     nameParts.join(" ") || "Customer";
 
   const orderItems =
-    items.map(item => ({
-      name: item.name,
-      sku: item.id,
-      units: Number(item.qty),
-      selling_price: Number(item.price),
-      discount: 0,
-      tax: 0,
-      hsn: ""
-    }));
+  items.map(item => ({
+    name: item.name,
+    sku: item.id,
+    units: Number(item.qty),
+    selling_price: Number(item.price)
+  }));
 
   const quantity =
     items.reduce(
@@ -119,16 +126,16 @@ async function createShiprocketOrder({
 
   const payload = {
 
-    order_id: orderNumber,
+    order_id: Date.now().toString(),
 
     order_date:
-      new Date().toISOString(),
+  new Date().toLocaleString("sv-SE", {
+    timeZone: "Asia/Kolkata",
+    hour12: false
+  }).slice(0, 16),
 
-    pickup_location:
-      process.env.SHIPROCKET_PICKUP_LOCATION,
-
-    channel_id:
-      "",
+pickup_location:
+  process.env.SHIPROCKET_PICKUP_LOCATION,
 
     comment:
       "AURAWEAVES Website Order",
