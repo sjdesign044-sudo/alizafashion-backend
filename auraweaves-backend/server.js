@@ -236,15 +236,17 @@ async function createShiprocketOrder({
 
   if (!response.ok) {
 
-    console.error(
-      "SHIPROCKET ORDER ERROR:",
-      data
-    );
+  console.error(
+    "SHIPROCKET ORDER ERROR:",
+    data
+  );
 
-    throw new Error(
-      "Shiprocket order creation failed"
-    );
-  }
+  throw new Error(
+    data?.message ||
+    data?.error ||
+    JSON.stringify(data)
+  );
+}
 
   console.log(
     "SHIPROCKET ORDER CREATED:",
